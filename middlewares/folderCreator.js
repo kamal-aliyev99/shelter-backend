@@ -6,9 +6,8 @@ function folderCreator (folderName) {
 
     if (!fs.existsSync(fullDirName)) {
         fs.mkdirSync(fullDirName, {recursive: true});
-        console.log(`'${fullDirName}' folder created `);
-        
-    } 
+        console.log(`'${fullDirName}' folder created `); 
+    }   
 }
 
 module.exports = folderCreator

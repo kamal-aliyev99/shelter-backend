@@ -1,6 +1,7 @@
 // URL :  /api/lang
 
 const router = require("express").Router();
+const upload = require("../../middlewares/fileUpload"); 
 const langController = require("../../controllers/lang/langController");
 
 
@@ -8,11 +9,8 @@ const langController = require("../../controllers/lang/langController");
 const langModel = require("../../models/lang/lang_model");
 const Joi = require("joi");
 const path = require("path");
-const folderCreator = require("../../middlewares/folderCreator")
-const multer = require("multer");
+const fileDelete = require("../../middlewares/fileDelete");
 
-folderCreator("lang-flags"); // middleware ile public folderi icinde 'lang-Flags' folderi yoxdursa yaradacag  
-const upload = multer({dest: '../../public/lang-flags'}); 
 
 const langSchema = Joi.object({
     langCode: Joi.string().max(10).required(),
@@ -31,29 +29,105 @@ router.get("/", langController.getLangs);
 
 router.get("/:id", langController.getLangByID);
 
-router.post("/", upload.single("image"), (req,res, next) => {
-    const newLang = req.body;
+router.post("/", upload("lang-flags").single("image"), (req, res, next) => {   //upload middlewareden gelir, parametr olarag folder adi oturulur
+    const formData = req.body;
     const file = req.file;
-    console.log(file);
+    const filePath = file ? path.resolve(file.path) : null;
+    const newLang = {
+        ...formData,
+        image: filePath
+    }    
     
-    // res.json({});
+    const {error} = langSchema.validate(newLang, {abortEarly: false})    
+    
+    if (error) {
+        const errors = error.details.map(err => ({  // error sebebi
+            field: err.context.key,
+            message: err.message
+        }));
 
-    // res.status(200).json(file);
-
-    // const {error} = langSchema.validate(newLang, {abortEarly: false})
-
-    // if (!error) {
-    //     // langModel.getLangByID(id)
-    //     //     .then()
-    //     res.status(200).json(newLang)
+        next({
+            statusCode: 400,
+            errorMessage: "Bad Request: The server could not understand the request because of invalid syntax.",
+            errors
+        })
         
-    // } else {
-    //     res.status(400).json(error)
-    // }
+    } else {
+        langModel.getLangByLangCode(newLang.langCode)
+            .then(data => {
+                if (data) {
+                    next({
+                        statusCode: 409,  // Conflict
+                        errorMessage: `'${newLang.langCode}' langCode already exist`,
+                        data
+                    })
+                } else {
+                    langModel.addLang(newLang)
+                        .then(addedLang => {
+                            res.status(201).json({
+                                message: "Language successfully inserted",
+                                data: addedLang
+                            });
+                        })
+                        .catch(error => {
+                            next({
+                                statusCode: 500,
+                                errorMessage: "An error occurred while adding language",
+                                error
+                            })
+                        })
+                }
+            })
+            .catch(error => {
+                next({
+                    statusCode: 500,
+                    errorMessage: "Unexpected error occurred while adding language",
+                    error
+                })
+            })
+    }
 })
+// insert ugurlu olmasa sekil yuklenmesin
 
 
 
+router.delete("/:id", (req, res, next) => {
+    const {id} = req.params;
+    let imagePath;
+
+    langModel.getLangByID(id)
+        .then(data => {
+            if (data) {
+                imagePath = data.image || null;
+
+                langModel.deleteLang(id)
+                    .then(deletedCount => {
+                        if (deletedCount) {
+                            fileDelete(imagePath);
+                            res.status(204).end();
+                        } else {
+                            next({
+                                statusCode: 500,
+                                errorMessage: "Internal Server Error: An error occurred while deleting language"
+                            })
+                        }
+                    }) 
+                    .catch(error => {
+                        next({
+                            statusCode: 500,
+                            errorMessage: "Internal Server Error: An error occurred while deleting language",
+                            error
+                        })
+                    })
+
+            } else {
+                next({
+                    statusCode: 404,
+                    errorMessage: "The language not found"
+                })
+            }
+        })
+})
 
 
 
