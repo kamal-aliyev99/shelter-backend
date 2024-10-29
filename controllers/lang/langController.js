@@ -1,14 +1,23 @@
 const langModel = require("../../models/lang/lang_model");
+const fileDelete = require("../../middlewares/fileDelete");
 
-const multer = require("multer");
 const Joi = require("joi");
+const path = require("path");
 
-const upload = multer();
+const langSchema = Joi.object({
+    langCode: Joi.string().max(10).required(),
+    name: Joi.string().max(50).required(),
+    image: Joi.string().allow(null)
+})
 
 module.exports = {
     getLangs,
-    getLangByID
+    getLangByID,
+    addLang,
+    updateLang,
+    deleteLang
 }
+
 
 
 //      G E T    A L L    L A N G U A G E S
@@ -22,12 +31,13 @@ function getLangs (req, res, next) {
             next(
                 {
                     statusCode: 500,
-                    errorMessage: "Internal Server Error",
+                    message: "Internal Server Error",
                     error
                 }
             )
         })
 }
+
 
 
 
@@ -44,7 +54,7 @@ function getLangByID (req, res, next) {
                 next(
                     {
                         statusCode: 404,
-                        errorMessage: "Language Not Found",
+                        message: "Language Not Found",
                     }
                 )
             }
@@ -53,9 +63,197 @@ function getLangByID (req, res, next) {
             next(
                 {
                     statusCode: 500,
-                    errorMessage: "Internal Server Error",
+                    message: "Internal Server Error",
                     error
                 }
             )
+        })
+}
+
+
+
+
+//      A D D    L A N G
+
+function addLang (req, res, next) {   
+    const formData = req.body;
+    const file = req.file;
+    const filePath = file ? path.resolve(file.path) : null;
+    const newLang = {
+        ...formData,
+        image: filePath
+    }    
+    
+    const {error} = langSchema.validate(newLang, {abortEarly: false})    
+    
+    if (error) {
+        fileDelete(filePath);  // insert ugurlu olmasa sekil yuklenmesin,, silsin
+        const errors = error.details.map(err => ({  // error sebebi
+            field: err.context.key,
+            message: err.message
+        }));
+
+        next({
+            statusCode: 400,
+            message: "Bad Request: The server could not understand the request because of invalid syntax.",
+            errors
+        })  
+        
+    } else {
+        langModel.getLangByLangCode(newLang.langCode)
+            .then(data => {
+                if (data) {
+                    fileDelete(filePath);
+                    next({
+                        statusCode: 409,  // Conflict
+                        message: `'${newLang.langCode}' langCode already exist`,
+                        data
+                    })
+                } else {
+                    langModel.addLang(newLang)
+                        .then(addedLang => {
+                            res.status(201).json({
+                                message: "Language successfully inserted",
+                                data: addedLang
+                            });
+                        })
+                        .catch(error => {
+                            fileDelete(filePath);
+                            next({
+                                statusCode: 500,
+                                message: "An error occurred while adding language",
+                                error
+                            })
+                        })
+                }
+            })
+            .catch(error => {
+                fileDelete(filePath);
+                next({
+                    statusCode: 500,
+                    message: "Unexpected error occurred while adding language",
+                    error
+                })
+            })
+    }
+}
+
+
+
+
+//      U P D A T E    L A N G
+
+function updateLang (req, res, next) {
+    const {id} = req.params;
+    const formData = {...req.body};
+
+    const file = req.file;
+    const filePath = file ? path.resolve(file.path) : null;
+
+    let editData;
+
+    if (filePath) {
+        editData = {...formData, image: filePath}
+    } else {
+        editData = {...formData}
+        if (formData.image !== null) {
+            Reflect.deleteProperty(editData, "image");
+        }
+    }    
+
+    
+    const {error} = langSchema.validate(editData, {abortEarly: false}) 
+
+    if (error) {
+        filePath && fileDelete(filePath);
+        const errors = error.details.map(err => ({  // error sebebi
+            field: err.context.key,
+            message: err.message
+        }));
+
+        next({
+            statusCode: 400,
+            message: "Bad Request: The server could not understand the request because of invalid syntax.",
+            errors
+        })  
+        
+    } else {
+        langModel.getLangByID(id)
+            .then(data => {
+                if (data) {
+                    langModel.updateLang(id, editData)
+                        .then(updatedData => {                            
+                            Reflect.has(editData, "image") && data.image &&
+                            fileDelete(data.image);
+
+                            res.status(200).json({ message: "Lang updated successfully", data: updatedData });
+                        })
+                        .catch(error => {
+                            filePath && fileDelete(filePath);
+                            next({
+                                statusCode: 500,
+                                message: "Internal Server Error: An error occurred while updating language",
+                                error
+                            })
+                        })
+                } else {
+                    filePath && fileDelete(filePath);
+                    next({
+                        statusCode: 404,
+                        message: "The language not found"
+                    })
+                }
+            })
+            .catch(error => {
+                filePath && fileDelete(filePath);
+                next({
+                    statusCode: 500,
+                    message: "Internal Server Error: An error occurred while updating language",
+                    error
+                })
+            })
+    }
+}
+
+
+
+
+//      D E L E T E    L A N G
+
+function deleteLang (req, res, next) {
+    const {id} = req.params;
+    let imagePath;
+
+    langModel.getLangByID(id)
+        .then(data => {
+            if (data) {
+                imagePath = data.image || null;
+
+                langModel.deleteLang(id)
+                    .then(deletedCount => {
+                        if (deletedCount) {
+                            fileDelete(imagePath);
+                            res.status(204).end();
+                        } else {
+                            next({
+                                statusCode: 500,
+                                message: "Internal Server Error: An error occurred while deleting language"
+                            })
+                        }
+                    }) 
+                    .catch(error => {
+                        next({
+                            statusCode: 500,
+                            message: "Internal Server Error: An error occurred while deleting language",
+                            error
+                        })
+                    })
+
+            } else {
+                next({
+                    statusCode: 404,
+                    message: "The language not found"
+                })
+            }
         })
 }

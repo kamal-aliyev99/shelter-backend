@@ -8,7 +8,7 @@ function fileUpload (folderName) { // hansi folderde olacagi
 
     const storage = multer.diskStorage({
         destination: (req, file, cb) => {
-            cb(null, `public/${folderName}/`)
+            cb(null, `public/${folderName}/`) 
         },
         filename: (req, file, cb) => {
             const uniqueName = crypto.randomBytes(16).toString("hex"); // 32 symbol random name

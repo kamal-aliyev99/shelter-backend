@@ -5,7 +5,8 @@ module.exports = {
     getLangByID,
     getLangByLangCode,
     addLang,
-    deleteLang
+    deleteLang,
+    updateLang
 }
 
 function getLangs () {
@@ -35,4 +36,12 @@ function deleteLang (id) {
     return db("lang")
         .where({id})
         .del()
+}
+
+function updateLang (id, updateData) {
+    return db("lang")
+        .where({id})
+        .update(updateData)
+        .returning("*")
+        .then(([data]) => data)
 }

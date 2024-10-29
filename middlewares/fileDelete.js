@@ -1,13 +1,20 @@
 const fs = require("fs");
 
 function fileDelete (filePath) {
-    fs.unlink(filePath, (err) => {
-        if (err) {
-            console.log(`File couldn't delete: '${filePath}'`);
-        } else {
-            console.log(`file successfully deleted: '${filePath}'`);
-        }
-    })
+    if (fs.existsSync(filePath)) {
+        fs.unlink(filePath, (error) => {
+            if (error) {
+                console.log({
+                    errorMessage: `File couldn't delete: '${filePath}'`,
+                    error
+                });
+            } else {
+                console.log(`file successfully deleted: '${filePath}'`);
+            }
+        })
+    } else {
+        console.log(`'${filePath}' file is not exist`);
+    }
 }
 
 module.exports = fileDelete
