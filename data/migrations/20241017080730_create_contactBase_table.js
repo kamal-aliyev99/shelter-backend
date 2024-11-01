@@ -6,7 +6,7 @@ exports.up = function(knex) {
   return knex.schema
     .createTable("contactBase", table => {
         table.increments("id").primary();
-        table.integer("findUs_id").unsigned();
+        table.integer("findUs_id").unsigned().notNullable();  // other id 0 olacag
         table.string("findUs_other");
         table.string("name").notNullable();
         table.string("surname").notNullable();

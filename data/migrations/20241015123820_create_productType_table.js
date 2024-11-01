@@ -6,7 +6,7 @@ exports.up = function(knex) {
   return knex.schema
     .createTable("productType", table => {
         table.increments("id").primary(); // sadece id ile translation'a qosulacaq
-        table.string("slug").notNullable();
+        table.string("slug").unique().notNullable();
     })
 };
 

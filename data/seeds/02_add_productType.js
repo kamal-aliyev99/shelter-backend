@@ -7,11 +7,11 @@ exports.seed = async function(knex) {
   await knex('productType').del()
   await knex('productType').insert([
     {
-      id: 1,
+      // id: 1,
       slug: "shelter"
     },
     {
-      id: 2,
+      // id: 2,
       slug: "equipment"
     }
   ]);

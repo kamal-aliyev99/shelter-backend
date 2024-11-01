@@ -1,31 +1,29 @@
-const langModel = require("../../models/lang/lang_model");
+const settingModel = require("../../models/setting/setting_model");
 const fileDelete = require("../../middlewares/fileDelete");
 
 const Joi = require("joi");
 const path = require("path");
 
-const langSchema = Joi.object({
-    langCode: Joi.string().max(10).required(),
-    name: Joi.string().max(50).required(),
-    image: Joi.string().allow(null)
+const settingSchema = Joi.object({
+    key: Joi.string().max(255).required(),
+    value: Joi.string().allow(null)
 })
 
 module.exports = {
-    getLangs,
-    getLangByID,
-    addLang,
-    updateLang,
-    deleteLang
+    getSettings,
+    getSettingByKeyOrID,
+    addSetting,
+    updateSetting,
+    deleteSetting
 }
 
 
+//      G E T    A L L    S E T T I N G
 
-//      G E T    A L L    L A N G U A G E S
-
-function getLangs (req, res, next) {
-    langModel.getLangs()
-        .then(langs => {
-            res.status(200).json(langs);
+function getSettings (req, res, next) {
+    settingModel.getSettings()  
+        .then(settings => {
+            res.status(200).json(settings);
         })
         .catch(error => {
             next(
@@ -41,20 +39,25 @@ function getLangs (req, res, next) {
 
 
 
-//      G E T    L A N G   b y   I D
+//      G E T    S E T T I N G   b y   I D  /  K E Y
 
-function getLangByID (req, res, next) {
-    const {id} = req.params;
+function getSettingByKeyOrID (req, res, next) {
+    const param = req.params.keyOrID;
 
-    langModel.getLangByID(id)
-        .then(lang => {
-            if (lang) {
-                res.status(200).json(lang);
+    const modelFunction = 
+    isNaN(Number(param)) ?
+    "getSettingByKey" :
+    "getSettingByID" 
+
+    settingModel[modelFunction](param)
+        .then(setting => {
+            if (setting) {
+                res.status(200).json(setting);
             } else {
                 next(
                     {
                         statusCode: 404,
-                        message: "Language Not Found",
+                        message: "The setting Not Found",
                     }
                 )
             }
@@ -73,21 +76,26 @@ function getLangByID (req, res, next) {
 
 
 
-//      A D D    L A N G
+//      A D D    S E T T I N G
 
-function addLang (req, res, next) {   
-    const formData = req.body;
+function addSetting (req, res, next) {   
+    const formData = {...req.body};
     const file = req.file;
     const filePath = file ? path.resolve(file.path) : null;
-    const newLang = {
+    const newSetting = 
+    filePath ? 
+    {
         ...formData,
-        image: filePath
-    }    
+        value: filePath
+    }  :  
+    {...formData}
+
     
-    const {error} = langSchema.validate(newLang, {abortEarly: false})    
+    
+    const {error} = settingSchema.validate(newSetting, {abortEarly: false})    
     
     if (error) {
-        fileDelete(filePath);  // insert ugurlu olmasa sekil yuklenmesin,, silsin
+        filePath && fileDelete(filePath);  // insert ugurlu olmasa sekil yuklenmesin,, silsin
         const errors = error.details.map(err => ({  // error sebebi
             field: err.context.key,
             message: err.message
@@ -100,38 +108,38 @@ function addLang (req, res, next) {
         })  
         
     } else {
-        langModel.getLangByLangCode(newLang.langCode)
+        settingModel.getSettingByKey(newSetting.key)
             .then(data => {
                 if (data) {
-                    fileDelete(filePath);
+                    filePath && fileDelete(filePath);
                     next({
                         statusCode: 409,  // Conflict
-                        message: `'${newLang.langCode}' langCode already exist`,
+                        message: `'${newSetting.key}' this key already exist`,
                         data
                     })
                 } else {
-                    langModel.addLang(newLang)
-                        .then(addedLang => {
+                    settingModel.addSetting(newSetting)
+                        .then(addedSetting => {
                             res.status(201).json({
-                                message: "Language successfully inserted",
-                                data: addedLang
+                                message: "Setting successfully inserted",
+                                data: addedSetting
                             });
                         })
                         .catch(error => {
-                            fileDelete(filePath);
+                            filePath && fileDelete(filePath);
                             next({
                                 statusCode: 500,
-                                message: "An error occurred while adding language",
+                                message: "An error occurred while adding setting",
                                 error
                             })
                         })
                 }
             })
             .catch(error => {
-                fileDelete(filePath);
+                filePath && fileDelete(filePath);
                 next({
                     statusCode: 500,
-                    message: "Unexpected error occurred while adding language",
+                    message: "Unexpected error occurred while adding setting",
                     error
                 })
             })
@@ -141,28 +149,24 @@ function addLang (req, res, next) {
 
 
 
-//      U P D A T E    L A N G
+//      U P D A T E    S E T T I N G
 
-function updateLang (req, res, next) {
+function updateSetting (req, res, next) {
     const {id} = req.params;
     const formData = {...req.body};
 
     const file = req.file;
     const filePath = file ? path.resolve(file.path) : null;
 
-    let editData;
-
-    if (filePath) {
-        editData = {...formData, image: filePath}
-    } else {
-        editData = {...formData}
-        if (formData.image !== null) {
-            Reflect.deleteProperty(editData, "image");
-        }
-    }    
-
+    let editData =
+    filePath ? 
+    {
+        ...formData,
+        value: filePath
+    }  :  
+    {...formData};
     
-    const {error} = langSchema.validate(editData, {abortEarly: false}) 
+    const {error} = settingSchema.validate(editData, {abortEarly: false})   
 
     if (error) {
         filePath && fileDelete(filePath);
@@ -178,21 +182,21 @@ function updateLang (req, res, next) {
         })  
         
     } else {
-        langModel.getLangByID(id)
+        settingModel.getSettingByID(id)
             .then(data => {
                 if (data) {
-                    langModel.updateLang(id, editData)
+                    settingModel.updateSetting(id, editData)
                         .then(updatedData => {                            
-                            Reflect.has(editData, "image") && data.image &&
-                            fileDelete(data.image);
+                            Reflect.has(editData, "value") && data.value &&
+                            fileDelete(data.value);
 
-                            res.status(200).json({ message: "Lang updated successfully", data: updatedData });
+                            res.status(200).json({ message: "Setting updated successfully", data: updatedData });
                         })
                         .catch(error => {
                             filePath && fileDelete(filePath);
                             next({
                                 statusCode: 500,
-                                message: "Internal Server Error: An error occurred while updating language",
+                                message: "Internal Server Error: An error occurred while updating setting",
                                 error
                             })
                         })
@@ -200,7 +204,7 @@ function updateLang (req, res, next) {
                     filePath && fileDelete(filePath);
                     next({
                         statusCode: 404,
-                        message: "The language not found"
+                        message: "The setting not found"
                     })
                 }
             })
@@ -208,7 +212,7 @@ function updateLang (req, res, next) {
                 filePath && fileDelete(filePath);
                 next({
                     statusCode: 500,
-                    message: "Internal Server Error: An error occurred while updating language",
+                    message: "Internal Server Error: Unexpected occurred while updating setting",
                     error
                 })
             })
@@ -218,18 +222,18 @@ function updateLang (req, res, next) {
 
 
 
-//      D E L E T E    L A N G
+//      D E L E T E    S E T T I N G
 
-function deleteLang (req, res, next) {
+function deleteSetting (req, res, next) {
     const {id} = req.params;
     let imagePath;
 
-    langModel.getLangByID(id)
+    settingModel.getSettingByID(id)
         .then(data => {
             if (data) {
-                imagePath = data.image || null;
+                imagePath = data.value || null;
 
-                langModel.deleteLang(id)
+                settingModel.deleteSetting(id)
                     .then(deletedCount => {
                         if (deletedCount) {
                             fileDelete(imagePath);
@@ -237,14 +241,14 @@ function deleteLang (req, res, next) {
                         } else {
                             next({
                                 statusCode: 500,
-                                message: "Internal Server Error: An error occurred while deleting language"
+                                message: "Internal Server Error: An error occurred while deleting setting"
                             })
                         }
                     }) 
                     .catch(error => {
                         next({
                             statusCode: 500,
-                            message: "Internal Server Error: An error occurred while deleting language",
+                            message: "Internal Server Error: Unexpected occurred while deleting setting",
                             error
                         })
                     })
@@ -252,8 +256,15 @@ function deleteLang (req, res, next) {
             } else {
                 next({
                     statusCode: 404,
-                    message: "The language not found"
+                    message: "The setting not found"
                 })
             }
         })
 }
+
+
+
+//      Note :
+
+//  edit olunan datada yeni key ferqli data'da varsa 500 internal server error verecek
+

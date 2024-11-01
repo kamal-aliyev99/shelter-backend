@@ -8,7 +8,7 @@ exports.up = function(knex) {
         table.increments("id").primary();
         table.integer("ourValues_id").unsigned().notNullable();
         table.string("langCode", 10).notNullable();
-        table.string("title");
+        table.string("title").notNullable();
         table.string("desc");
 
         table

@@ -2,7 +2,7 @@
 
 const router = require("express").Router();
 const upload = require("../../middlewares/fileUpload"); 
-const langController = require("../../controllers/lang/langController");
+const langController = require("../../controllers/lang/lang_controller");
 
 
 //   EndPoints

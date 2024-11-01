@@ -4,10 +4,10 @@
  */
 exports.up = function(knex) {
   return knex.schema
-    .createTable("ourValues", table => {
+    .createTable("staticImage", table => {
         table.increments("id").primary();
-        table.string("slug").notNullable();
-        table.text("image");
+        table.string("slug").unique().notNullable();
+        table.text("image"); 
     })
 };
 
@@ -17,5 +17,5 @@ exports.up = function(knex) {
  */
 exports.down = function(knex) {
   return knex.schema
-    .dropTableIfExists("ourValues")
+    .dropTableIfExists("staticImage")
 };

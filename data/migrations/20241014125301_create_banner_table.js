@@ -7,7 +7,7 @@ exports.up = function(knex) {
     .createTable("banner", table => {
         table.increments("id").primary();
         table.string("page").unique().notNullable();   // slug esasinda saxlayacaq, hansi sehifenin banneri oldugu
-        table.string("image");
+        table.text("image");
     })
 };
 

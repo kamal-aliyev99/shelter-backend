@@ -7,7 +7,7 @@ exports.up = function(knex) {
     .createTable("blog", table => {
         table.increments("id").primary();
         table.string("slug").unique().notNullable();
-        table.string("image");
+        table.text("image");
         table.timestamps(true, true);
     })
 };

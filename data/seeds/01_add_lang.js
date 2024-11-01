@@ -7,17 +7,17 @@ exports.seed = async function(knex) {
   await knex('lang').del()
   await knex('lang').insert([
     {
-      id: 1,
+      // id: 1,
       langCode: "en",
       name: "English"
     },
     {
-      id: 2,
+      // id: 2,
       langCode: "az",
       name: "Azerbaijani"
     },
     {
-      id: 3,
+      // id: 3,
       langCode: "ru",
       name: "Russian"
     },

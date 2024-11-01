@@ -8,7 +8,7 @@ exports.up = function(knex) {
         table.increments("id").primary();
         table.integer("staticText_id").unsigned().notNullable();
         table.string("langCode", 10).notNullable();
-        table.string("value");  // translated text
+        table.string("value").notNullable();  // translated text
 
         table
           .foreign("staticText_id")

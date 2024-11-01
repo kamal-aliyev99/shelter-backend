@@ -9,7 +9,7 @@ exports.up = function(knex) {
         table.integer("product_id").unsigned().notNullable();
         table.string("langCode", 10).notNullable();
         
-        table.string("title");
+        table.string("title").notNullable();
         table.text("desc");
         table.string("date");
         table.string("client");

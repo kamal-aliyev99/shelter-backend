@@ -7,7 +7,7 @@ exports.up = function(knex) {
         .createTable("setting", table => {
             table.increments("id").primary();
             table.string("key").unique().notNullable(); // slug esasinda saxlayacaq, meselen (email, phone, logo)
-            table.text("value").notNullable();  // e.g. (0123456789, test@gmail.com...)
+            table.text("value");  // e.g. (0123456789, test@gmail.com, immageURL ...)
       })
   };
   

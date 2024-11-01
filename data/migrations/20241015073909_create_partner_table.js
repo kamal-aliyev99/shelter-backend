@@ -7,7 +7,7 @@ exports.up = function(knex) {
     .createTable("partner", table => {
         table.increments("id").primary();
         table.string("title");
-        table.string("image");   // image path
+        table.text("image");   // image path
     })
 };
 
