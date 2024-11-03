@@ -1,4 +1,4 @@
-// URL :  /api/setting
+// URL :  /api/staticText?lang=en
 
 const router = require("express").Router();
 const staticTextController = require("../../controllers/staticText/staticText_controller")
@@ -26,9 +26,9 @@ const staticTextSchema = Joi.object({    //  edit    ?!!!
 
 router.get("/", staticTextController.getStaticTexts);
 
-// router.get("/:keyOrID", staticTextController.getSettingByKeyOrID);
+router.get("/:keyOrID", staticTextController.getStaticTextByKeyOrID);
 
-// router.post("/", staticTextController.addSetting);
+router.post("/", staticTextController.addStaticText);
 
 // router.patch("/:id", staticTextController.updateSetting);
 
