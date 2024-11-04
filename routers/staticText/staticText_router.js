@@ -30,9 +30,9 @@ router.get("/:keyOrID", staticTextController.getStaticTextByKeyOrID);
 
 router.post("/", staticTextController.addStaticText);
 
-// router.patch("/:id", staticTextController.updateSetting);
+router.patch("/:id", staticTextController.updateStaticText);
 
-// router.delete("/:id", staticTextController.deleteSetting);
+router.delete("/:id", staticTextController.deleteStaticText);
 
 
 

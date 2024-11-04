@@ -6,7 +6,7 @@ exports.up = function(knex) {
   return knex.schema
     .createTable("staticImage", table => {
         table.increments("id").primary();
-        table.string("slug").unique().notNullable();
+        table.string("slug").unique().notNullable(); // edit with "key"
         table.text("image"); 
     })
 };
@@ -19,3 +19,4 @@ exports.down = function(knex) {
   return knex.schema
     .dropTableIfExists("staticImage")
 };
+ 
