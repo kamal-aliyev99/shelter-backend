@@ -6,7 +6,7 @@ exports.up = function(knex) {
   return knex.schema
     .createTable("staticImage", table => {
         table.increments("id").primary();
-        table.string("key").unique().notNullable(); // edit with "key"
+        table.string("key").unique().notNullable(); 
         table.text("image"); 
     })
 };
