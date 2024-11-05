@@ -6,7 +6,7 @@ exports.up = function(knex) {
   return knex.schema
     .createTable("findUs", table => {
         table.increments("id").primary();  // initial 0 ~ other
-        table.string("slug").notNullable();
+        table.string("key").notNullable();
     })
 };
 

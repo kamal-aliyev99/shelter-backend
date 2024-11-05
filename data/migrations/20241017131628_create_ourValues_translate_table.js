@@ -9,7 +9,7 @@ exports.up = function(knex) {
         table.integer("ourValues_id").unsigned().notNullable();
         table.string("langCode", 10).notNullable();
         table.string("title").notNullable();
-        table.string("desc");
+        table.text("desc");
 
         table
           .foreign("ourValues_id")

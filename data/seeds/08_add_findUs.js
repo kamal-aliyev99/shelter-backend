@@ -8,7 +8,7 @@ exports.seed = async function(knex) {
   await knex('findUs').insert([
     {
       id: 0,
-      slug: "other"
+      key: "other"
     }
   ]);
 };

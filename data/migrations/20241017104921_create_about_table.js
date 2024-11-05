@@ -6,7 +6,7 @@ exports.up = function(knex) {
   return knex.schema
     .createTable("about", table => {
         table.increments("id").primary();
-        table.string("key").unique().notNullable();  // image ????????????????????
+        table.string("key").unique().notNullable();  
     })
 };
 
