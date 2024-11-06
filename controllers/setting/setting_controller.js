@@ -236,7 +236,7 @@ function deleteSetting (req, res, next) {
                 settingModel.deleteSetting(id)
                     .then(deletedCount => {
                         if (deletedCount) {
-                            fileDelete(imagePath);
+                            imagePath && fileDelete(imagePath);
                             res.status(204).end();
                         } else {
                             next({

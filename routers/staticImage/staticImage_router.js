@@ -6,35 +6,19 @@ const bannerController = require("../../controllers/banner/banner_controller");
 const staticImageController = require("../../controllers/staticImage/staticImage_controller");
 
 
-// forDevelopment - start ~~~~~~~~~
-
-const bannerModel = require("../../models/banner/banner_model");
-const fileDelete = require("../../middlewares/fileDelete");
-
-const Joi = require("joi");
-const path = require("path");
-
-const bannerSchema = Joi.object({
-    page: Joi.string().max(50).required(),
-    image: Joi.string().allow(null)
-})
-
-// forDevelopment - end  ~~~~~~~~~~
-
-
 
 //      EndPoints
 
 
-router.get("/", bannerController.getBanners);
+router.get("/", staticImageController.getStaticImages);
 
-// router.get("/:id", bannerController.getBannerByID);
+router.get("/:keyOrID", staticImageController.getStaticImageByKeyorID);
 
-// router.post("/", upload("banner-images").single("image"), bannerController.addBanner);
+router.post("/", upload("static-Images").single("image"), staticImageController.addStaticImage);  
 
-// router.patch("/:id", upload("banner-images").single("image"), bannerController.updateBanner);
+router.patch("/:id", upload("static-Images").single("image"), staticImageController.updateStaticImage);
 
-// router.delete("/:id", bannerController.deleteBanner);
+router.delete("/:id", staticImageController.deleteStaticImage);  
 
 
 

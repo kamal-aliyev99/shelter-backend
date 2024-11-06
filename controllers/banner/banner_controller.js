@@ -11,7 +11,7 @@ const bannerSchema = Joi.object({
 
 module.exports = {
     getBanners,
-    getBannerByID,
+    getBannerByPageOrID,
     addBanner,
     updateBanner,
     deleteBanner
@@ -41,10 +41,15 @@ function getBanners (req, res, next) {
 
 //      G E T    B A N N E R   b y   I D
 
-function getBannerByID (req, res, next) {
-    const {id} = req.params;
+function getBannerByPageOrID (req, res, next) {
+    const {pageOrID} = req.params;
 
-    bannerModel.getBannerByID(id)
+    const modelFunction = 
+    isNaN(Number(pageOrID)) ?
+    "getBannerByPage" :
+    "getBannerByID" 
+
+    bannerModel[modelFunction](pageOrID)
         .then(banner => {
             if (banner) {
                 res.status(200).json(banner);
@@ -230,7 +235,7 @@ function deleteBanner (req, res, next) {
                 bannerModel.deleteBanner(id)
                     .then(deletedCount => {
                         if (deletedCount) {
-                            fileDelete(imagePath);
+                            imagePath && fileDelete(imagePath);
                             res.status(204).end();
                         } else {
                             next({

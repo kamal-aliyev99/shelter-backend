@@ -3,7 +3,7 @@ const db = require("../../config/db-config");
 module.exports = {
     getStaticImages,
     getStaticImageByID,
-    getStaticImageByPage,
+    getStaticImageByKey,
     addStaticImage,
     updateStaticImage,
     deleteStaticImage
@@ -19,15 +19,15 @@ function getStaticImageByID (id) {
         .first()
 }
 
-function getStaticImageByPage (page) {    
+function getStaticImageByKey (key) {    
     return db("staticImage")
-        .where({page})
+        .where({key})
         .first()
 }
 
-function addStaticImage (newBanner) { 
+function addStaticImage (newStaticImage) { 
     return db("staticImage")
-        .insert(newBanner)
+        .insert(newStaticImage)
         .returning("*")
         .then(([data]) => data)
 }

@@ -5,26 +5,26 @@ const fileDelete = require("../../middlewares/fileDelete");
 const Joi = require("joi");
 const path = require("path");
 
-const bannerSchema = Joi.object({
-    page: Joi.string().max(255).required(),
+const staticImageSchema = Joi.object({
+    key: Joi.string().max(255).required(),
     image: Joi.string().allow(null)
 })
 
 module.exports = {
-    getBanners,
-    getBannerByID,
-    addBanner,
-    updateBanner,
-    deleteBanner
+    getStaticImages,
+    getStaticImageByKeyorID,
+    addStaticImage,
+    updateStaticImage,
+    deleteStaticImage
 }
 
 
-//      G E T    A L L    B A N N E R S
+//      G E T    A L L    S T A T I C   I M A G E S
 
-function getBanners (req, res, next) {
-    bannerModel.getBanners()  // edit
-        .then(banners => {
-            res.status(200).json(banners);
+function getStaticImages (req, res, next) {
+    staticImageModel.getStaticImages()  
+        .then(staticImages => {
+            res.status(200).json(staticImages);
         })
         .catch(error => {
             next(
@@ -40,20 +40,25 @@ function getBanners (req, res, next) {
 
 
 
-//      G E T    B A N N E R   b y   I D
+//      G E T    S T A T I C   I M A G E   b y   I D
 
-function getBannerByID (req, res, next) {
-    const {id} = req.params;
+function getStaticImageByKeyorID (req, res, next) {
+    const {keyOrID} = req.params;
 
-    bannerModel.getBannerByID(id)
-        .then(banner => {
-            if (banner) {
-                res.status(200).json(banner);
+    const modelFunction = 
+    isNaN(Number(keyOrID)) ?
+    "getStaticImageByKey" :
+    "getStaticImageByID" 
+
+    staticImageModel[modelFunction](keyOrID)
+        .then(staticImage => {
+            if (staticImage) {
+                res.status(200).json(staticImage);
             } else {
                 next(
                     {
                         statusCode: 404,
-                        message: "The banner Not Found",
+                        message: "The staticImage Not Found",
                     }
                 )
             }
@@ -72,18 +77,18 @@ function getBannerByID (req, res, next) {
 
 
 
-//      A D D    B A N N E R
+//      A D D    S T A T I C   I M A G E
 
-function addBanner (req, res, next) {   
-    const formData = req.body;
+function addStaticImage (req, res, next) {   
+    const formData = {...req.body};
     const file = req.file;
     const filePath = file ? path.resolve(file.path) : null;
-    const newBanner = {
+    const newStaticImage = {
         ...formData,
         image: filePath
     }    
     
-    const {error} = bannerSchema.validate(newBanner, {abortEarly: false})    
+    const {error} = staticImageSchema.validate(newStaticImage, {abortEarly: false})    
     
     if (error) {
         filePath && fileDelete(filePath);  // insert ugurlu olmasa sekil yuklenmesin,, silsin
@@ -99,28 +104,28 @@ function addBanner (req, res, next) {
         })  
         
     } else {
-        bannerModel.getBannerByPage(newBanner.page)
+        staticImageModel.getStaticImageByKey(newStaticImage.key)
             .then(data => {
                 if (data) {
                     filePath && fileDelete(filePath);
                     next({
                         statusCode: 409,  // Conflict
-                        message: `'${newBanner.page}' page's banner already exist`,
+                        message: `'${newStaticImage.key}' - staticImage already exist`,
                         data
                     })
                 } else {
-                    bannerModel.addBanner(newBanner)
-                        .then(addedBanner => {
+                    staticImageModel.addStaticImage(newStaticImage)
+                        .then(addedStaticImage => {
                             res.status(201).json({
-                                message: "Banner successfully inserted",
-                                data: addedBanner
+                                message: "StaticImage successfully inserted",
+                                data: addedStaticImage
                             });
                         })
                         .catch(error => {
                             filePath && fileDelete(filePath);
                             next({
                                 statusCode: 500,
-                                message: "An error occurred while adding banner",
+                                message: "An error occurred while adding staticImage",
                                 error
                             })
                         })
@@ -130,7 +135,7 @@ function addBanner (req, res, next) {
                 filePath && fileDelete(filePath);
                 next({
                     statusCode: 500,
-                    message: "Unexpected error occurred while adding banner",
+                    message: "Unexpected error occurred while adding staticImage",
                     error
                 })
             })
@@ -140,9 +145,9 @@ function addBanner (req, res, next) {
 
 
 
-//      U P D A T E    B A N N E R  
+//      U P D A T E    S T A T I C   I M A G E       
 
-function updateBanner (req, res, next) {
+function updateStaticImage (req, res, next) {
     const {id} = req.params;
     const formData = {...req.body};
 
@@ -154,14 +159,13 @@ function updateBanner (req, res, next) {
     if (filePath) {
         editData = {...formData, image: filePath}
     } else {
-        editData = {...formData}
+        editData = {...formData}; 
         if (formData.image !== null) {
             Reflect.deleteProperty(editData, "image");
         }
     }    
-
     
-    const {error} = bannerSchema.validate(editData, {abortEarly: false})   
+    const {error} = staticImageSchema.validate(editData, {abortEarly: false})   
 
     if (error) {
         filePath && fileDelete(filePath);
@@ -177,21 +181,21 @@ function updateBanner (req, res, next) {
         })  
         
     } else {
-        bannerModel.getBannerByID(id)
+        staticImageModel.getStaticImageByID(id)
             .then(data => {
                 if (data) {
-                    bannerModel.updateBanner(id, editData)
+                    staticImageModel.updateStaticImage(id, editData)
                         .then(updatedData => {                            
                             Reflect.has(editData, "image") && data.image &&
                             fileDelete(data.image);
 
-                            res.status(200).json({ message: "Banner updated successfully", data: updatedData });
+                            res.status(200).json({ message: "StaticImage updated successfully", data: updatedData });
                         })
                         .catch(error => {
                             filePath && fileDelete(filePath);
                             next({
                                 statusCode: 500,
-                                message: "Internal Server Error: An error occurred while updating banner",
+                                message: "Internal Server Error: An error occurred while updating staticImage",
                                 error
                             })
                         })
@@ -199,7 +203,7 @@ function updateBanner (req, res, next) {
                     filePath && fileDelete(filePath);
                     next({
                         statusCode: 404,
-                        message: "The banner not found"
+                        message: "The staticImage not found"
                     })
                 }
             })
@@ -207,7 +211,7 @@ function updateBanner (req, res, next) {
                 filePath && fileDelete(filePath);
                 next({
                     statusCode: 500,
-                    message: "Internal Server Error: Unexpected occurred while updating banner",
+                    message: "Internal Server Error: Unexpected occurred while updating staticImage",
                     error
                 })
             })
@@ -217,33 +221,33 @@ function updateBanner (req, res, next) {
 
 
 
-//      D E L E T E    B A N N E R
+//      D E L E T E    S T A T I C   I M A G E
 
-function deleteBanner (req, res, next) {
+function deleteStaticImage (req, res, next) {
     const {id} = req.params;
     let imagePath;
 
-    bannerModel.getBannerByID(id)
+    staticImageModel.getStaticImageByID(id)
         .then(data => {
-            if (data) {
+            if (data) {                
                 imagePath = data.image || null;
 
-                bannerModel.deleteBanner(id)
-                    .then(deletedCount => {
+                staticImageModel.deleteStaticImage(id)
+                    .then((deletedCount) => {                        
                         if (deletedCount) {
-                            fileDelete(imagePath);
+                            imagePath && fileDelete(imagePath);
                             res.status(204).end();
                         } else {
                             next({
                                 statusCode: 500,
-                                message: "Internal Server Error: An error occurred while deleting banner"
+                                message: "Internal Server Error: An error occurred while deleting staticImage"
                             })
                         }
                     }) 
                     .catch(error => {
                         next({
                             statusCode: 500,
-                            message: "Internal Server Error: Unexpected occurred while deleting banner",
+                            message: "Internal Server Error: Unexpected occurred while deleting staticImage",
                             error
                         })
                     })
@@ -251,7 +255,7 @@ function deleteBanner (req, res, next) {
             } else {
                 next({
                     statusCode: 404,
-                    message: "The banner not found"
+                    message: "The staticImage not found"
                 })
             }
         })
