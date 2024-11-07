@@ -4,11 +4,17 @@ const fileDelete = require("../../middlewares/fileDelete");
 const Joi = require("joi");
 const path = require("path");
 
-const langSchema = Joi.object({
+const langInsertSchema = Joi.object({
     langCode: Joi.string().max(10).required(),
     name: Joi.string().max(50).required(),
     image: Joi.string().allow(null)
 })
+
+const langUpdateSchema = langInsertSchema.concat(
+    Joi.object({
+        id: Joi.number().positive().required()
+    })
+);
 
 module.exports = {
     getLangs,
@@ -84,7 +90,7 @@ function addLang (req, res, next) {
         image: filePath
     }    
     
-    const {error} = langSchema.validate(newLang, {abortEarly: false})    
+    const {error} = langInsertSchema.validate(newLang, {abortEarly: false})    
     
     if (error) {
         filePath && fileDelete(filePath);  // insert ugurlu olmasa sekil yuklenmesin,, silsin
@@ -162,7 +168,7 @@ function updateLang (req, res, next) {
     }    
 
     
-    const {error} = langSchema.validate(editData, {abortEarly: false}) 
+    const {error} = langUpdateSchema.validate(editData, {abortEarly: false}) 
 
     if (error) {
         filePath && fileDelete(filePath);

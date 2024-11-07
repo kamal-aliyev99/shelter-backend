@@ -4,10 +4,16 @@ const fileDelete = require("../../middlewares/fileDelete");
 const Joi = require("joi");
 const path = require("path");
 
-const settingSchema = Joi.object({
+const settingInsertSchema = Joi.object({
     key: Joi.string().max(255).required(),
     value: Joi.string().allow(null)
 })
+
+const settingUpdateSchema = settingInsertSchema.concat(
+    Joi.object({
+        id: Joi.number().positive().required()
+    })
+);
 
 module.exports = {
     getSettings,
@@ -92,7 +98,7 @@ function addSetting (req, res, next) {
 
     
     
-    const {error} = settingSchema.validate(newSetting, {abortEarly: false})    
+    const {error} = settingInsertSchema.validate(newSetting, {abortEarly: false})    
     
     if (error) {
         filePath && fileDelete(filePath);  // insert ugurlu olmasa sekil yuklenmesin,, silsin
@@ -166,7 +172,7 @@ function updateSetting (req, res, next) {
     }  :  
     {...formData};
     
-    const {error} = settingSchema.validate(editData, {abortEarly: false})   
+    const {error} = settingUpdateSchema.validate(editData, {abortEarly: false})   
 
     if (error) {
         filePath && fileDelete(filePath);

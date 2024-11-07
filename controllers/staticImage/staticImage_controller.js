@@ -1,14 +1,19 @@
-const bannerModel = require("../../models/banner/banner_model");
 const staticImageModel = require("../../models/staticImage/staticImage_model");
 const fileDelete = require("../../middlewares/fileDelete");
 
 const Joi = require("joi");
 const path = require("path");
 
-const staticImageSchema = Joi.object({
+const staticImageInsertSchema = Joi.object({
     key: Joi.string().max(255).required(),
     image: Joi.string().allow(null)
 })
+
+const staticImageUpdateSchema = staticImageInsertSchema.concat(
+    Joi.object({
+        id: Joi.number().positive().required()
+    })
+);
 
 module.exports = {
     getStaticImages,
@@ -88,7 +93,7 @@ function addStaticImage (req, res, next) {
         image: filePath
     }    
     
-    const {error} = staticImageSchema.validate(newStaticImage, {abortEarly: false})    
+    const {error} = staticImageInsertSchema.validate(newStaticImage, {abortEarly: false})    
     
     if (error) {
         filePath && fileDelete(filePath);  // insert ugurlu olmasa sekil yuklenmesin,, silsin
@@ -165,7 +170,7 @@ function updateStaticImage (req, res, next) {
         }
     }    
     
-    const {error} = staticImageSchema.validate(editData, {abortEarly: false})   
+    const {error} = staticImageUpdateSchema.validate(editData, {abortEarly: false})   
 
     if (error) {
         filePath && fileDelete(filePath);

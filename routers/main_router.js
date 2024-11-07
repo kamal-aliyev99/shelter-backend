@@ -9,6 +9,7 @@ const bannerRouter = require("./banner/banner_router");
 const settingRouter = require("./setting/setting_router");
 const staticTextRouter = require("./staticText/staticText_router");
 const staticImageRouter = require("./staticImage/staticImage_router");
+const partnerRouter = require("./partner/partner_router");
 
 
 
@@ -28,6 +29,9 @@ router.use("/setting", settingRouter);
 router.use("/staticText", staticTextRouter);
 
 router.use("/staticImage", staticImageRouter);
+
+router.use("/partner", partnerRouter);
+
 
 
 

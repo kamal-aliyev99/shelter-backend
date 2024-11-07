@@ -1,18 +1,7 @@
 const staticTextModel = require("../../models/staticText/staticText_model");
 const langModel = require("../../models/lang/lang_model");
-const fileDelete = require("../../middlewares/fileDelete");
 
 const Joi = require("joi");
-const path = require("path");
-
-// const staticTextSchema = Joi.object({
-//     key: Joi.string().max(255).required(),        
-// }).pattern(
-//     Joi.string().max(10),
-//     Joi.object({
-//         value: Joi.string().max(255).required()
-//     })
-// )
 
 const staticTextInsertSchema = Joi.object({
     key: Joi.string().max(255).required(),
@@ -31,7 +20,7 @@ const staticTextUpdateSchema = Joi.object({
     id: Joi.number().positive().required(),
     key: Joi.string().max(255).required(),
     value: Joi.string().max(255).required(),
-    translationID: Joi.number().positive().required(),
+    translationID: Joi.number().positive().required(),  //   ???
     langCode: Joi.string().max(10)
 })
 
@@ -46,7 +35,7 @@ module.exports = {
 }
 
 
-//      G E T    A L L    S E T T I N G
+//      G E T    A L L    Static Text
 
 function getStaticTexts (req, res, next) {
     const lang = req.query.lang || defaultLang;    
@@ -69,7 +58,7 @@ function getStaticTexts (req, res, next) {
 
 
 
-//      G E T    S E T T I N G   b y   I D  /  K E Y
+//      G E T    Static Text   b y   I D  /  K E Y
 
 function getStaticTextByKeyOrID (req, res, next) {
     const param = req.params.keyOrID;
@@ -191,7 +180,7 @@ function addStaticText (req, res, next) {
 
 
 
-//      U P D A T E    S E T T I N G
+//      U P D A T E    Static Text
 
 function updateStaticText (req, res, next) {
     const {id} = req.params;
@@ -264,7 +253,7 @@ function updateStaticText (req, res, next) {
 
 
 
-//      D E L E T E    S E T T I N G
+//      D E L E T E    Static Text
 
 function deleteStaticText (req, res, next) {
     const {id} = req.params;

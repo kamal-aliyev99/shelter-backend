@@ -1,35 +1,36 @@
-const bannerModel = require("../../models/banner/banner_model");
+const staticImageModel = require("../../models/staticImage/staticImage_model");
+const partnerModel = require("../../models/partner/partner_model");
 const fileDelete = require("../../middlewares/fileDelete");
 
 const Joi = require("joi");
 const path = require("path");
 
-const bannerInsertSchema = Joi.object({
-    page: Joi.string().max(255).required(),
+const partnerInsertSchema = Joi.object({
+    title: Joi.string().max(255),
     image: Joi.string().allow(null)
 })
 
-const bannerUpdateSchema = bannerInsertSchema.concat(
+const partnerUpdateSchema = partnerInsertSchema.concat(
     Joi.object({
         id: Joi.number().positive().required()
     })
 );
 
 module.exports = {
-    getBanners,
-    getBannerByPageOrID,
-    addBanner,
-    updateBanner,
-    deleteBanner
+    getPartners,
+    getStaticImageByID,
+    addPartner,
+    updatePartner,
+    deletePartner
 }
 
 
-//      G E T    A L L    B A N N E R S
+//      G E T    A L L    P A R T N E R S
 
-function getBanners (req, res, next) {
-    bannerModel.getBanners()  // edit
-        .then(banners => {
-            res.status(200).json(banners);
+function getPartners (req, res, next) {
+    partnerModel.getPartners()  
+        .then(partners => {
+            res.status(200).json(partners);
         })
         .catch(error => {
             next(
@@ -45,25 +46,20 @@ function getBanners (req, res, next) {
 
 
 
-//      G E T    B A N N E R   b y   I D
+//      G E T    P A R T N E R   b y   I D
 
-function getBannerByPageOrID (req, res, next) {
-    const {pageOrID} = req.params;
+function getStaticImageByID (req, res, next) {
+    const {id} = req.params;
 
-    const modelFunction = 
-    isNaN(Number(pageOrID)) ?
-    "getBannerByPage" :
-    "getBannerByID" 
-
-    bannerModel[modelFunction](pageOrID)
-        .then(banner => {
-            if (banner) {
-                res.status(200).json(banner);
+    partnerModel.getPartnerByID(id)
+        .then(partner => {
+            if (partner) {
+                res.status(200).json(partner);
             } else {
                 next(
                     {
                         statusCode: 404,
-                        message: "The banner Not Found",
+                        message: "The partner Not Found",
                     }
                 )
             }
@@ -82,18 +78,18 @@ function getBannerByPageOrID (req, res, next) {
 
 
 
-//      A D D    B A N N E R
+//      A D D    P A R T N E R
 
-function addBanner (req, res, next) {   
-    const formData = req.body;
+function addPartner (req, res, next) {   
+    const formData = {...req.body};
     const file = req.file;
     const filePath = file ? path.resolve(file.path) : null;
-    const newBanner = {
-        ...formData,
+    const newPartner = {
+        ...formData,    
         image: filePath
     }    
     
-    const {error} = bannerInsertSchema.validate(newBanner, {abortEarly: false})    
+    const {error} = partnerInsertSchema.validate(newPartner, {abortEarly: false})    
     
     if (error) {
         filePath && fileDelete(filePath);  // insert ugurlu olmasa sekil yuklenmesin,, silsin
@@ -109,38 +105,18 @@ function addBanner (req, res, next) {
         })  
         
     } else {
-        bannerModel.getBannerByPage(newBanner.page)
-            .then(data => {
-                if (data) {
-                    filePath && fileDelete(filePath);
-                    next({
-                        statusCode: 409,  // Conflict
-                        message: `'${newBanner.page}' page's banner already exist`,
-                        data
-                    })
-                } else {
-                    bannerModel.addBanner(newBanner)
-                        .then(addedBanner => {
-                            res.status(201).json({
-                                message: "Banner successfully inserted",
-                                data: addedBanner
-                            });
-                        })
-                        .catch(error => {
-                            filePath && fileDelete(filePath);
-                            next({
-                                statusCode: 500,
-                                message: "An error occurred while adding banner",
-                                error
-                            })
-                        })
-                }
+        partnerModel.addPartner(newPartner)
+            .then(addedPartner => {
+                res.status(201).json({
+                    message: "Partner successfully inserted",
+                    data: addedPartner
+                });
             })
             .catch(error => {
                 filePath && fileDelete(filePath);
                 next({
                     statusCode: 500,
-                    message: "Unexpected error occurred while adding banner",
+                    message: "An error occurred while adding partner",
                     error
                 })
             })
@@ -150,9 +126,9 @@ function addBanner (req, res, next) {
 
 
 
-//      U P D A T E    B A N N E R  
+//      U P D A T E    P A R T N E R      
 
-function updateBanner (req, res, next) {
+function updatePartner (req, res, next) {
     const {id} = req.params;
     const formData = {...req.body};
 
@@ -164,14 +140,13 @@ function updateBanner (req, res, next) {
     if (filePath) {
         editData = {...formData, image: filePath}
     } else {
-        editData = {...formData}
+        editData = {...formData}; 
         if (formData.image !== null) {
             Reflect.deleteProperty(editData, "image");
         }
     }    
-
     
-    const {error} = bannerUpdateSchema.validate(editData, {abortEarly: false})   
+    const {error} = partnerUpdateSchema.validate(editData, {abortEarly: false})   
 
     if (error) {
         filePath && fileDelete(filePath);
@@ -187,21 +162,21 @@ function updateBanner (req, res, next) {
         })  
         
     } else {
-        bannerModel.getBannerByID(id)
+        partnerModel.getPartnerByID(id)
             .then(data => {
                 if (data) {
-                    bannerModel.updateBanner(id, editData)
+                    partnerModel.updatePartner(id, editData)
                         .then(updatedData => {                            
                             Reflect.has(editData, "image") && data.image &&
                             fileDelete(data.image);
 
-                            res.status(200).json({ message: "Banner updated successfully", data: updatedData });
+                            res.status(200).json({ message: "Partner updated successfully", data: updatedData });
                         })
                         .catch(error => {
                             filePath && fileDelete(filePath);
                             next({
                                 statusCode: 500,
-                                message: "Internal Server Error: An error occurred while updating banner",
+                                message: "Internal Server Error: An error occurred while updating partner",
                                 error
                             })
                         })
@@ -209,7 +184,7 @@ function updateBanner (req, res, next) {
                     filePath && fileDelete(filePath);
                     next({
                         statusCode: 404,
-                        message: "The banner not found"
+                        message: "The partner not found"
                     })
                 }
             })
@@ -217,7 +192,7 @@ function updateBanner (req, res, next) {
                 filePath && fileDelete(filePath);
                 next({
                     statusCode: 500,
-                    message: "Internal Server Error: Unexpected occurred while updating banner",
+                    message: "Internal Server Error: Unexpected occurred while updating partner",
                     error
                 })
             })
@@ -227,33 +202,33 @@ function updateBanner (req, res, next) {
 
 
 
-//      D E L E T E    B A N N E R
+//      D E L E T E    P A R T N E R
 
-function deleteBanner (req, res, next) {
+function deletePartner (req, res, next) {
     const {id} = req.params;
     let imagePath;
 
-    bannerModel.getBannerByID(id)
+    partnerModel.getPartnerByID(id)
         .then(data => {
-            if (data) {
+            if (data) {                
                 imagePath = data.image || null;
 
-                bannerModel.deleteBanner(id)
-                    .then(deletedCount => {
+                partnerModel.deletePartner(id)
+                    .then((deletedCount) => {                        
                         if (deletedCount) {
                             imagePath && fileDelete(imagePath);
                             res.status(204).end();
                         } else {
                             next({
                                 statusCode: 500,
-                                message: "Internal Server Error: An error occurred while deleting banner"
+                                message: "Internal Server Error: An error occurred while deleting partner"
                             })
                         }
                     }) 
                     .catch(error => {
                         next({
                             statusCode: 500,
-                            message: "Internal Server Error: Unexpected occurred while deleting banner",
+                            message: "Internal Server Error: Unexpected occurred while deleting partner",
                             error
                         })
                     })
@@ -261,7 +236,7 @@ function deleteBanner (req, res, next) {
             } else {
                 next({
                     statusCode: 404,
-                    message: "The banner not found"
+                    message: "The partner not found"
                 })
             }
         })

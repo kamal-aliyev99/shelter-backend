@@ -2,7 +2,6 @@
 
 const router = require("express").Router();
 const upload = require("../../middlewares/fileUpload"); 
-const bannerController = require("../../controllers/banner/banner_controller");
 const staticImageController = require("../../controllers/staticImage/staticImage_controller");
 
 
