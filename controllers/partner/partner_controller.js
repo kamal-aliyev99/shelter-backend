@@ -1,4 +1,3 @@
-const staticImageModel = require("../../models/staticImage/staticImage_model");
 const partnerModel = require("../../models/partner/partner_model");
 const fileDelete = require("../../middlewares/fileDelete");
 
@@ -239,5 +238,12 @@ function deletePartner (req, res, next) {
                     message: "The partner not found"
                 })
             }
+        })
+        .catch(error => {
+            next({
+                statusCode: 500,
+                message: "Internal Server Error: Unexpected occurred while deleting partner",
+                error
+            })
         })
 }

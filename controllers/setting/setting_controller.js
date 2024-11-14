@@ -266,6 +266,13 @@ function deleteSetting (req, res, next) {
                 })
             }
         })
+        .catch(error => {
+            next({
+                statusCode: 500,
+                message: "Internal Server Error: Unexpected occurred while deleting service",
+                error
+            })
+        })
 }
 
 

@@ -16,7 +16,7 @@ module.exports = {
 
 //      Get Datas
 
-function getStaticTexts() {
+function getStaticTexts() {   // not used
     return db("staticText")
 }
 

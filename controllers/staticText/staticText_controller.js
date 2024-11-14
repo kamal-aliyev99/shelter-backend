@@ -12,7 +12,7 @@ const staticTextInsertSchema = Joi.object({
                 value: Joi.string().max(255).required() 
             })
         )
-        .min(1) // arrayda min 1 obj olmalidi
+        .min(1) // arrayda min 1 obj olmalidi - for key
         .required()
 });
 
@@ -20,7 +20,7 @@ const staticTextUpdateSchema = Joi.object({
     id: Joi.number().positive().required(),
     key: Joi.string().max(255).required(),
     value: Joi.string().max(255).required(),
-    translationID: Joi.number().positive().required(),  //   ???
+    translationID: Joi.number().positive().required(),  
     langCode: Joi.string().max(10)
 })
 
@@ -213,7 +213,7 @@ function updateStaticText (req, res, next) {
                     staticTextModel.updateStaticText(id, staticTextData, translationData)
                         .then(() => {
                             res.status(200).json({
-                                message: "Setting updated successfully"
+                                message: "StaticText updated successfully"
                             })
                         })
                         .catch(error => {
@@ -286,6 +286,13 @@ function deleteStaticText (req, res, next) {
                     message: "The staticText not found"
                 })
             }
+        })
+        .catch(error => {
+            next({
+                statusCode: 500,
+                message: "Internal Server Error: Unexpected occurred while deleting staticText",
+                error
+            })
         })
 }
 
