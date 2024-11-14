@@ -11,7 +11,7 @@ const serviceController = require("../../controllers/service/service_controller"
 
 router.get("/", serviceController.getServices);
 
-router.get("/:slugOrID", serviceController.getStaticTextBySlugOrID);
+router.get("/:slugOrID", serviceController.getServiceBySlugOrID);
 
 router.post("/", upload("service-images").single("image"), serviceController.addService);  
 

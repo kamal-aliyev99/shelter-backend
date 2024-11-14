@@ -10,5 +10,5 @@ const mainRouter = require("./routers/main_router")
 server.use("/api", mainRouter);
 
 server.listen(3030, () => {
-    console.log("http://localhost:3030 already"); 
+    console.log("http://localhost:3030 is ready"); 
 })
