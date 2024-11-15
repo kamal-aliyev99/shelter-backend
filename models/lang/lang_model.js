@@ -19,9 +19,7 @@ function getLangByID (id) {
         .first()
 }
 
-function getLangByLangCode (langCode) {
-    console.log(langCode);
-    
+function getLangByLangCode (langCode) {    
     return db("lang")
         .where({langCode})
         .first()

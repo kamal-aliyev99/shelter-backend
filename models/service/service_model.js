@@ -122,8 +122,9 @@ function updateService (id, serviceData, translationData) {
             .update(serviceData)
 
         await trx("service_translate")
-            .where({ id: translationData.id })
-            .update(translationData)        
+            .insert(translationData)
+            .onConflict(["service_id", "langCode"])
+            .merge() 
     })
 }
 

@@ -238,7 +238,7 @@ function deleteLang (req, res, next) {
                 langModel.deleteLang(id)
                     .then(deletedCount => {
                         if (deletedCount) {
-                            fileDelete(imagePath);
+                            imagePath && fileDelete(imagePath);
                             res.status(204).end();
                         } else {
                             next({

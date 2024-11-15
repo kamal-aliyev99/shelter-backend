@@ -128,11 +128,12 @@ function updateStaticText (id, staticTextData, translationData) {
     return db.transaction(async trx => {
         await trx("staticText")
             .where({id})
-            .update(staticTextData)
+            .update(staticTextData)      
 
         await trx("staticText_translate")
-            .where({ id: translationData.id })
-            .update(translationData)        
+            .insert(translationData)
+            .onConflict(["staticText_id", "langCode"])
+            .merge() 
     })
 }
 

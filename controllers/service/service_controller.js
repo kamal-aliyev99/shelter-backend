@@ -24,7 +24,7 @@ const serviceUpdateSchema = Joi.object({
     id: Joi.number().positive().required(),
     slug: Joi.string().max(255),
     image: Joi.string().allow(null),
-    translationID: Joi.number().positive().required(),
+    translationID: Joi.number().positive(),
     langCode: Joi.string().max(10),
     title: Joi.string().max(255).required(),
     desc: Joi.string()
@@ -212,7 +212,7 @@ function updateService(req, res, next) {
     
     const {id: serviceID, slug, image, translationID, langCode, title, desc} = formData,
     serviceData = {id: serviceID, slug, image},
-    translationData = {id: translationID, langCode, title, desc};
+    translationData = {id: translationID, service_id: id, langCode, title, desc};
 
     if (filePath) {
         serviceData.image = filePath

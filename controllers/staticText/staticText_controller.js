@@ -20,7 +20,7 @@ const staticTextUpdateSchema = Joi.object({
     id: Joi.number().positive().required(),
     key: Joi.string().max(255).required(),
     value: Joi.string().max(255).required(),
-    translationID: Joi.number().positive().required(),  
+    translationID: Joi.number().positive(),  
     langCode: Joi.string().max(10)
 })
 
@@ -188,7 +188,7 @@ function updateStaticText (req, res, next) {
 
     const {id: staticTextID, key, value, translationID, langCode} = formData,
     staticTextData = { id: staticTextID, key },
-    translationData = {id: translationID, value, langCode};
+    translationData = {id: translationID, staticText_id: id, value, langCode};
 
     
     const {error} = staticTextUpdateSchema.validate(formData, {abortEarly: false})   
