@@ -119,8 +119,9 @@ function updateProductType (id, productTypeData, translationData) {
             .update(productTypeData)
 
         await trx("productType_translation")
-            .where({ id: translationData.id })
-            .update(translationData)        
+            .insert(translationData)
+            .onConflict(["productType_id", "langCode"])
+            .merge()          
     })
 }
 

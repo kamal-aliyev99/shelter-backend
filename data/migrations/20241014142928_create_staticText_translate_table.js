@@ -23,6 +23,8 @@ exports.up = function(knex) {
           .inTable("lang")
           .onUpdate("CASCADE")
           .onDelete("CASCADE")
+
+        table.unique(["staticText_id", "langCode"], {indexName: "unique_staticTextID_langCode"})
     })
 };
 

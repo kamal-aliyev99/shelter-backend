@@ -23,7 +23,7 @@ exports.seed = async function(knex) {
     },
     {
       category_id: 2,
-      langCode: "en",
+      langCode: "az",
       title: "Standart bomba siginacag"
     },
     {

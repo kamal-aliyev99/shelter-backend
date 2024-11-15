@@ -21,7 +21,7 @@ const productTypeInsertSchema = Joi.object({
 const productTypeUpdateSchema = Joi.object({
     id: Joi.number().positive().required(),
     slug: Joi.string().max(255),
-    translationID: Joi.number().positive().required(),
+    translationID: Joi.number().positive(),
     langCode: Joi.string().max(10),
     title: Joi.string().max(255).required(),
 })
@@ -192,7 +192,7 @@ function updateproductType(req, res, next) {
     
     const {id: productTypeID, slug, translationID, langCode, title} = formData,
     productTypeData = {id: productTypeID, slug},
-    translationData = {id: translationID, langCode, title};
+    translationData = {id: translationID, productType_id: id, langCode, title};
 
     const {error} = productTypeUpdateSchema.validate(formData, {abortEarly: false})   
 
@@ -240,7 +240,6 @@ function updateproductType(req, res, next) {
                 })
             })
     }
-
 }
 
 // const exampleEditProductType = {
