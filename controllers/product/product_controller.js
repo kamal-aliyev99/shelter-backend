@@ -1,55 +1,63 @@
-const serviceModel = require("../../models/service/service_model");
+const productModel = require("../../models/product/product_model");
 const langModel = require("../../models/lang/lang_model");
 const fileDelete = require("../../middlewares/fileDelete");
 
 const Joi = require("joi");
 const path = require("path");
 
-const serviceInsertSchema = Joi.object({
+const productInsertSchema = Joi.object({
     slug: Joi.string().max(255).required(),
+    category_id: Joi.number().positive().required(),
     image: Joi.string().allow(null),
+    date: Joi.date().iso().allow(null, ''),   // YYYY-MM-DD
     translation: Joi.array()
         .items(
             Joi.object({
                 langCode: Joi.string().max(10).required(),
                 title: Joi.string().max(255).required(),
-                desc: Joi.string()
+                desc: Joi.string().allow(''),
+                client: Joi.string().max(255).allow(''),
+                location: Joi.string().max(255).allow('')
             })
         )
-        .min(1) // arrayda min 1 obj olmalidi - for key
+        .min(1) 
         .required()
 })
 
-const serviceUpdateSchema = Joi.object({
+const productUpdateSchema = Joi.object({
     id: Joi.number().positive().required(),
+    category_id: Joi.number().positive(),
     slug: Joi.string().max(255),
     image: Joi.string().allow(null),
+    date: Joi.date().iso().allow(null, ''),
     translationID: Joi.number().positive(),
     langCode: Joi.string().max(10),
     title: Joi.string().max(255).required(),
-    desc: Joi.string().allow('')
+    desc: Joi.string().allow(''),
+    client: Joi.string().max(255).allow(''),
+    location: Joi.string().max(255).allow('') 
 })
 
 
 const defaultLang = "en";
 
 module.exports = {
-    getServices,
-    getServiceBySlugOrID,
-    addService,
-    updateService,
-    deleteService
+    getProducts,
+    getProductBySlugOrID,
+    addProduct,
+    updateProduct,
+    deleteProduct
 }
 
 
-//      Get all services 
+//      Get all Products 
 
-function getServices (req, res, next) {
+function getProducts (req, res, next) {
     const lang = req.query.lang || defaultLang;    
 
-    serviceModel.getServicesWithLang(lang)  
-        .then(services => {
-            res.status(200).json(services);
+    productModel.getProductsWithLang(lang)  
+        .then(products => {
+            res.status(200).json(products);
         })
         .catch(error => {
             next(
@@ -64,26 +72,26 @@ function getServices (req, res, next) {
 
 
 
-//      Get service by ID / slug
+//      Get Product by ID / slug
 
-function getServiceBySlugOrID (req, res, next) {
+function getProductBySlugOrID (req, res, next) {
     const param = req.params.slugOrID;
     const lang = req.query.lang || defaultLang;
 
     const modelFunction = 
     isNaN(Number(param)) ?
-    "getServiceBySlugWithLang" :
-    "getServiceByIDWithLang" 
+    "getProductBySlugWithLang" :
+    "getProductByIDWithLang" 
 
-    serviceModel[modelFunction](param, lang) 
-        .then(service => {
-            if (service) {
-                res.status(200).json(service);
+    productModel[modelFunction](param, lang) 
+        .then(product => {
+            if (product) {
+                res.status(200).json(product);
             } else {
                 next(
                     {
                         statusCode: 404,
-                        message: "The service Not Found",
+                        message: "The product Not Found",
                     }
                 )
             }
@@ -100,23 +108,23 @@ function getServiceBySlugOrID (req, res, next) {
 }
 
 
-//      Add service
+//      Add Product
 
-function addService (req, res, next) {
+function addProduct (req, res, next) {
     const formData = {...req.body};
     const file = req.file;
     const filePath = file ? path.resolve(file.path) : null;
-    const newService = {
+    const newProduct = {
         ...formData,    
         image: filePath
     }
-    const {translation, ...serviceData} = newService;
+    const {translation, ...productData} = newProduct;
 
-    const {error} = serviceInsertSchema.validate(newService, {abortEarly: false})  
+    const {error} = productInsertSchema.validate(newProduct, {abortEarly: false})  
     
     if (error) {
-        filePath && fileDelete(filePath);  // insert ugurlu olmasa sekil yuklenmesin,, silsin
-        const errors = error.details.map(err => ({  // error sebebi
+        filePath && fileDelete(filePath);  
+        const errors = error.details.map(err => ({ 
             field: err.context.key,
             message: err.message
         }));
@@ -129,13 +137,13 @@ function addService (req, res, next) {
         
     } else {
 
-        serviceModel.getServiceBySlug(serviceData.slug)
+        productModel.getProductBySlug(productData.slug)
             .then(data => {
                 if (data) {
                     filePath && fileDelete(filePath);
                     next({
                         statusCode: 409,  // Conflict
-                        message: `'${serviceData.slug}' this slug already exist`,
+                        message: `'${productData.slug}' this slug already exist`,
                         data
                     })
                 } else {
@@ -147,16 +155,15 @@ function addService (req, res, next) {
                                 if (!existLang) {
                                     translation.push({
                                         langCode: lang.langCode,
-                                        title: serviceData.slug,
-                                        desc: ""
+                                        title: productData.slug,
                                     })
                                 }
                             });
     
-                            serviceModel.addService(serviceData, translation)
+                            productModel.addProduct(productData, translation)
                                 .then(id => {
                                     res.status(201).json({
-                                        message: "Service successfully inserted",
+                                        message: "Product successfully inserted",
                                         data: {id}
                                     })
                                 })
@@ -164,7 +171,7 @@ function addService (req, res, next) {
                                     filePath && fileDelete(filePath);
                                     next({
                                         statusCode: 500,
-                                        message: "An error occurred while adding Service",
+                                        message: "An error occurred while adding product",
                                         error
                                     })
                                 })  
@@ -176,53 +183,59 @@ function addService (req, res, next) {
                 filePath && fileDelete(filePath);
                 next({
                     statusCode: 500,
-                    message: "Unexpected error occurred while adding Service",
+                    message: "Unexpected error occurred while adding product",
                     error
                 })
             })
     }
 }
 
-// const exampleNewService = {
-//     slug: "medical-assistance",
+// const exampleNewProduct = {
+//     slug: "product1",
+//     category_id: 1,
+//     date: "2023-02-14",   // YYYY-MM-DD  (ISO)
 //     image: null,
 //     translation: [
 //         {
 //             langCode: "en",
-//             title: "Medical assistance",
-//             desc: "Medical assistance 123"
+//             title: "Product 1",
+//             desc: "",
+//             client: "",
+//             location: ""
 //         },
 //         {
 //             langCode: "az",
-//             title: "Tibbi Yardım",
-//             desc: "Tibbi Yardım 123"
+//             title: "Mehsul 1",
+//             desc: "",
+//             client: "",
+//             location: ""
 //         }
 //     ]
 // }
 
 
 
-//      Update service
+//      Update Product
 
-function updateService(req, res, next) {
+function updateProduct(req, res, next) {
     const {id} = req.params;
     const formData = {...req.body};
     const file = req.file;
     const filePath = file ? path.resolve(file.path) : null;
     
-    const {id: serviceID, slug, image, translationID, langCode, title, desc} = formData,
-    serviceData = {id: serviceID, slug, image},
-    translationData = {id: translationID, service_id: id, langCode, title, desc};
+    const {id: productID, slug, category_id, image, date, translationID, langCode, title, desc, client, location} = formData,
+    productData = {id: productID, slug, category_id, image, date},
+    translationData = {id: translationID, product_id: id, langCode, title, desc, client, location};     
 
     if (filePath) {
-        serviceData.image = filePath
+        productData.image = filePath
     } else {
-        if (serviceData.image !== null) {
-            Reflect.deleteProperty(serviceData, "image");
+        if (productData.image !== null) {
+            Reflect.deleteProperty(productData, "image");
         }
     }   
 
-    const {error} = serviceUpdateSchema.validate(formData, {abortEarly: false})   
+    const {error} = productUpdateSchema.validate(formData, {abortEarly: false})   
 
 
     if (error) {
@@ -239,23 +252,23 @@ function updateService(req, res, next) {
         })  
         
     } else {
-        serviceModel.getServiceByID(id)
+        productModel.getProductByID(id)
             .then(data => {
                 if (data) {
-                    serviceModel.updateService(id, serviceData, translationData)
+                    productModel.updateProduct(id, productData, translationData)
                         .then(() =>{
-                            Reflect.has(serviceData, "image") && data.image &&
+                            Reflect.has(productData, "image") && data.image &&
                             fileDelete(data.image);
 
                             res.status(200).json({
-                                message: "Service updated successfully"
+                                message: "product updated successfully"
                             })
                         })
                         .catch(error => {
                             filePath && fileDelete(filePath);
                             next({
                                 statusCode: 500,
-                                message: "Internal Server Error: An error occurred while updating service",
+                                message: "Internal Server Error: An error occurred while updating product",
                                 error
                             })
                         })
@@ -263,7 +276,7 @@ function updateService(req, res, next) {
                     filePath && fileDelete(filePath);
                     next({
                         statusCode: 404,
-                        message: "The service not found"
+                        message: "The product not found"
                     })
                 }
             })
@@ -271,38 +284,41 @@ function updateService(req, res, next) {
                 filePath && fileDelete(filePath);
                 next({
                     statusCode: 500,
-                    message: "Internal Server Error: Unexpected occurred while updating service",
+                    message: "Internal Server Error: Unexpected occurred while updating product",
                     error
                 })
             })
     }
-
 }
 
-// const exampleEditService = {
-//     id: 1,
-//     slug: "test-1",
-//     image: null,
-//     translationID: 5,
-//     langCode: "en",
-//     title: "Test",
-//     desc: "Tessssttttt"
-// }
+const exampleEditProduct = {
+    id: 1,
+    slug: "test-1",
+    category_id: 1,
+    image: null,
+    date: "2024-01-02",
+    translationID: 5,
+    langCode: "en",
+    title: "Test",
+    desc: "",
+    client: "",
+    location: ""
+}
 
 
 
-//      delete Service
+//      delete Product
 
-function deleteService(req, res, next) {
+function deleteProduct(req, res, next) {
     const {id} = req.params;
     let imagePath;
 
-    serviceModel.getServiceByID(id)
+    productModel.getProductByID(id)
         .then(data => {
             if (data) {
                 imagePath = data.image || null;
 
-                serviceModel.deleteService(id)
+                productModel.deleteProduct(id)
                     .then((deletedCount) => {                        
                         if (deletedCount) {
                             imagePath && fileDelete(imagePath);
@@ -310,28 +326,28 @@ function deleteService(req, res, next) {
                         } else {
                             next({
                                 statusCode: 500,
-                                message: "Internal Server Error: An error occurred while deleting service"
+                                message: "Internal Server Error: An error occurred while deleting product"
                             })
                         }
                     }) 
                     .catch(error => {
                         next({
                             statusCode: 500,
-                            message: "Internal Server Error: Unexpected occurred while deleting service",
+                            message: "Internal Server Error: Unexpected occurred while deleting product",
                             error
                         })
                     })
             } else {
                 next({
                     statusCode: 404,
-                    message: "The service not found"
+                    message: "The product not found"
                 })
             }
         })
         .catch(error => {
             next({
                 statusCode: 500,
-                message: "Internal Server Error: Unexpected occurred while deleting service",
+                message: "Internal Server Error: Unexpected occurred while deleting product",
                 error
             })
         })

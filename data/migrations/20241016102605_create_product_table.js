@@ -8,7 +8,8 @@ exports.up = function(knex) {
         table.increments("id").primary();
         table.integer("category_id").unsigned().notNullable();
         table.string("slug").unique().notNullable();
-        table.text("image")  // image path
+        table.text("image")  
+        table.date("date")
 
         table
           .foreign("category_id")

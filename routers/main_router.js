@@ -12,6 +12,8 @@ const staticImageRouter = require("./staticImage/staticImage_router");
 const partnerRouter = require("./partner/partner_router");
 const serviceRouter = require("./service/service_router");
 const productTypeRouter = require("./productType/productType_router");
+const categoryRouter = require("./category/category_router");
+const productRouter = require("./product/product_router");
 
 
 
@@ -37,6 +39,10 @@ router.use("/partner", partnerRouter);
 router.use("/service", serviceRouter);
 
 router.use("/productType", productTypeRouter);
+
+router.use("/category", categoryRouter);
+
+router.use("/product", productRouter);
 
 
 

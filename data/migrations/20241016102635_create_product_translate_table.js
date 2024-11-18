@@ -11,7 +11,6 @@ exports.up = function(knex) {
         
         table.string("title").notNullable();
         table.text("desc");
-        table.string("date");
         table.string("client");
         table.string("location");
 

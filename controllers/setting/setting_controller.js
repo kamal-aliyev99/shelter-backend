@@ -6,7 +6,7 @@ const path = require("path");
 
 const settingInsertSchema = Joi.object({
     key: Joi.string().max(255).required(),
-    value: Joi.string().allow(null)
+    value: Joi.string().allow(null, '')
 })
 
 const settingUpdateSchema = settingInsertSchema.concat(
