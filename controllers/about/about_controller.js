@@ -1,25 +1,25 @@
-const findUsModel = require("../../models/findUs/findUs_model");
+const aboutModel = require("../../models/about/about_model");
 const langModel = require("../../models/lang/lang_model");
 
 const Joi = require("joi");
 
-const findUsInsertSchema = Joi.object({
+const aboutInsertSchema = Joi.object({
     key: Joi.string().max(255).required(),
     translation: Joi.array()
         .items(
             Joi.object({
                 langCode: Joi.string().max(10).required(),
-                title: Joi.string().max(255).required() 
+                value: Joi.string().max(255).required() 
             })
         )
         .min(1) // arrayda min 1 obj olmalidi - for key
         .required()
 });
 
-const findUsUpdateSchema = Joi.object({
+const aboutUpdateSchema = Joi.object({
     id: Joi.number().positive().required(),
     key: Joi.string().max(255).required(),
-    title: Joi.string().max(255).required(),
+    value: Joi.string().max(255).required(),
     translationID: Joi.number().positive(),  
     langCode: Joi.string().max(10)
 })
@@ -27,22 +27,22 @@ const findUsUpdateSchema = Joi.object({
 const defaultLang = "en";
 
 module.exports = {
-    getFindUs,
-    getFindUsByKeyOrID,
-    addFindUs,
-    updateFindUs,
-    deleteFindUs
+    getAbouts,
+    getAboutByKeyOrID,
+    addAbout,
+    updateAbout,
+    deleteAbout
 }
 
 
-//      G E T    A L L    findUs
+//      G E T    A L L    Abouts
 
-function getFindUs (req, res, next) {
+function getAbouts (req, res, next) {
     const lang = req.query.lang ||defaultLang;    
 
-    findUsModel.getFindUsWithLang(lang)  
-        .then(findUs => {
-            res.status(200).json(findUs);
+    aboutModel.getAboutsWithLang(lang)  
+        .then(abouts => {
+            res.status(200).json(abouts);
         })
         .catch(error => {
             next(
@@ -58,26 +58,26 @@ function getFindUs (req, res, next) {
 
 
 
-//      G E T    findUs   b y   I D  /  K E Y
+//      G E T    about   b y   I D  /  K E Y
 
-function getFindUsByKeyOrID (req, res, next) {
+function getAboutByKeyOrID (req, res, next) {
     const param = req.params.keyOrID;
     const lang = req.query.lang || defaultLang;
 
     const modelFunction = 
     isNaN(Number(param)) ?
-    "getFindUsByKeyWithLang" :
-    "getFindUsByIDWithLang" 
+    "getAboutByKeyWithLang" :
+    "getAboutByIDWithLang" 
 
-    findUsModel[modelFunction](param, lang)
-        .then(findUs => {
-            if (findUs) {
-                res.status(200).json(findUs);
+    aboutModel[modelFunction](param, lang)
+        .then(about => {
+            if (about) {
+                res.status(200).json(about);
             } else {
                 next(
                     {
                         statusCode: 404,
-                        message: "The findUs Not Found",
+                        message: "The about Not Found",
                     }
                 )
             }
@@ -96,13 +96,13 @@ function getFindUsByKeyOrID (req, res, next) {
 
 
 
-//      A D D    findUs
+//      A D D    about
 
-function addFindUs (req, res, next) {   
+function addAbout (req, res, next) {   
     const formData = {...req.body};
-    const {translation, ...findUsData} = formData;
+    const {translation, ...aboutData} = formData;
     
-    const {error} = findUsInsertSchema.validate(formData, {abortEarly: false})    
+    const {error} = aboutInsertSchema.validate(formData, {abortEarly: false})    
     
     if (error) {
         const errors = error?.details?.map(err => ({  // error sebebi
@@ -117,7 +117,7 @@ function addFindUs (req, res, next) {
         })  
         
     } else {
-        findUsModel.getFindUsByKey(formData.key)
+        aboutModel.getAboutByKey(formData.key)
             .then(data => {
                 if (data) {
                     next({
@@ -134,22 +134,22 @@ function addFindUs (req, res, next) {
                                 if (!exists) {
                                     translation.push({
                                         langCode: lang.langCode,
-                                        title: findUsData.key
+                                        value: aboutData.key
                                     });
                                 }
                             });
                             
-                            findUsModel.addFindUs(findUsData, translation)
+                            aboutModel.addAbout(aboutData, translation)
                                 .then(id => {
                                     res.status(201).json({
-                                        message: "findUs successfully inserted",
+                                        message: "about successfully inserted",
                                         data: {id}
                                     })
                                 })
                                 .catch(error => {
                                     next({
                                         statusCode: 500,
-                                        message: "An error occurred while adding findUs",
+                                        message: "An error occurred while adding about",
                                         error
                                     })
                                 })                            
@@ -159,39 +159,39 @@ function addFindUs (req, res, next) {
             .catch(error => {
                 next({
                     statusCode: 500,
-                    message: "Unexpected error occurred while adding findUs",
+                    message: "Unexpected error occurred while adding about",
                     error
                 })
             })
     }
 }
 
-//  ~~EXAMPLE~~  Add findUs - request body:
+//  ~~EXAMPLE~~  Add about - request body:
 
 // const exampleAddData = {
-//     key: "home-page",   // same as en.title
+//     key: "homeBanner-3",  
 
 //     translation: [
-//         {langCode: "en", title: "Home page"},  // default for key
-//         {langCode: "az", title: "Ana sehife"}
+//         {langCode: "en", value: "3. homeBanner descriptionn"},  
+//         {langCode: "az", value: "3. homeBanner haqqindaaaa"}
 //     ]
 // }
 
 
 
 
-//      U P D A T E    findUs
+//      U P D A T E    about
 
-function updateFindUs (req, res, next) {
+function updateAbout (req, res, next) {
     const {id} = req.params;
     const formData = {...req.body};
 
-    const {id: findUsID, key, title, translationID, langCode} = formData,
-    findUsData = { id: findUsID, key },
-    translationData = {id: translationID, findUs_id: id, title, langCode};
+    const {id: aboutID, key, value, translationID, langCode} = formData,
+    aboutData = { id: aboutID, key },
+    translationData = {id: translationID, about_id: id, value, langCode};
 
     
-    const {error} = findUsUpdateSchema.validate(formData, {abortEarly: false})   
+    const {error} = aboutUpdateSchema.validate(formData, {abortEarly: false})   
 
 
     if (error) {
@@ -207,75 +207,74 @@ function updateFindUs (req, res, next) {
         })  
         
     } else {
-        findUsModel.getFindUsByID(id)
+        aboutModel.getAboutByID(id)
             .then(data => {
                 if (data) {
-                    findUsModel.updateFindUs(id, findUsData, translationData)
+                    aboutModel.updateAbout(id, aboutData, translationData)
                         .then(() => {
                             res.status(200).json({
-                                message: "findUs updated successfully"
+                                message: "about updated successfully"
                             })
                         })
                         .catch(error => {
                             next({
                                 statusCode: 500,
-                                message: "Internal Server Error: An error occurred while updating findUs",
+                                message: "Internal Server Error: An error occurred while updating about",
                                 error
                             })
                         })
                 } else {
                     next({
                         statusCode: 404,
-                        message: "The findUs not found"
+                        message: "The about not found"
                     })
                 }
             })
             .catch(error => {
                 next({
                     statusCode: 500,
-                    message: "Internal Server Error: Unexpected occurred while updating findUs",
+                    message: "Internal Server Error: Unexpected occurred while updating about",
                     error
                 })
             })
     }
 }
 
-//  ~~EXAMPLE~~  Update findUs - request body:
+//  ~~EXAMPLE~~  Update about - request body:
 
 // const exampleUpdateData = {
-//     id: 5,
-//     key: "from-friends 111",
-//     title: "Dostlardan 111",
-//     translationID: 14,
-//     langCode: "az"
+//     id: 2,
+//     key: "homeBanner-2",
+//     value: "2. homeBanner descriptionn",
+//     translationID: 4,
+//     langCode: "en"
 // }
 
 
 
+//      D E L E T E    about
 
-//      D E L E T E    findUs
-
-function deleteFindUs (req, res, next) {
+function deleteAbout (req, res, next) {
     const {id} = req.params;
 
-    findUsModel.getFindUsByID(id)
+    aboutModel.getAboutByID(id)
         .then(data => {
             if (data) {
-                findUsModel.deleteFindUs(id)
+                aboutModel.deleteAbout(id)
                     .then(deletedCount => {
                         if (deletedCount) {
                             res.status(204).end();
                         } else {
                             next({
                                 statusCode: 500,
-                                message: "Internal Server Error: An error occurred while deleting findUs"
+                                message: "Internal Server Error: An error occurred while deleting about"
                             })
                         }
                     }) 
                     .catch(error => {
                         next({
                             statusCode: 500,
-                            message: "Internal Server Error: Unexpected occurred while deleting findUs",
+                            message: "Internal Server Error: Unexpected occurred while deleting about",
                             error
                         })
                     })
@@ -283,14 +282,14 @@ function deleteFindUs (req, res, next) {
             } else {
                 next({
                     statusCode: 404,
-                    message: "The findUs not found"
+                    message: "The about not found"
                 })
             }
         })
         .catch(error => {
             next({
                 statusCode: 500,
-                message: "Internal Server Error: Unexpected occurred while deleting findUs",
+                message: "Internal Server Error: Unexpected occurred while deleting about",
                 error
             })
         })
