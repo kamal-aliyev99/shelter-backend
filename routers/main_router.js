@@ -14,6 +14,7 @@ const serviceRouter = require("./service/service_router");
 const productTypeRouter = require("./productType/productType_router");
 const categoryRouter = require("./category/category_router");
 const productRouter = require("./product/product_router");
+const blogRouter = require("./blog/blog_router");
 
 
 
@@ -44,6 +45,7 @@ router.use("/category", categoryRouter);
 
 router.use("/product", productRouter);
 
+router.use("/blog", blogRouter);
 
 
 

@@ -1,63 +1,59 @@
-const productModel = require("../../models/product/product_model");
+const blogModel = require("../../models/blog/blog_model");
 const langModel = require("../../models/lang/lang_model");
 const fileDelete = require("../../middlewares/fileDelete");
 
 const Joi = require("joi");
 const path = require("path");
 
-const productInsertSchema = Joi.object({
+const blogInsertSchema = Joi.object({
     slug: Joi.string().max(255).required(),
-    category_id: Joi.number().positive().required(),
     image: Joi.string().allow(null),
-    date: Joi.date().iso().allow(null, ''),   // YYYY-MM-DD
     translation: Joi.array()
         .items(
             Joi.object({
                 langCode: Joi.string().max(10).required(),
                 title: Joi.string().max(255).required(),
                 desc: Joi.string().allow(''),
-                client: Joi.string().max(255).allow(''),
-                location: Joi.string().max(255).allow('')
+                shortDesc: Joi.string().allow('')
             })
         )
         .min(1) 
         .required()
 })
 
-const productUpdateSchema = Joi.object({
+const blogUpdateSchema = Joi.object({
     id: Joi.number().positive().required(),
-    category_id: Joi.number().positive(),
     slug: Joi.string().max(255),
     image: Joi.string().allow(null),
-    date: Joi.date().iso().allow(null, ''),
+    created_at: Joi.date(),
+    updated_at: Joi.date(),   // YYYY-MM-DD
     translationID: Joi.number().positive(),
     langCode: Joi.string().max(10),
     title: Joi.string().max(255).required(),
     desc: Joi.string().allow(''),
-    client: Joi.string().max(255).allow(''),
-    location: Joi.string().max(255).allow('') 
+    shortDesc: Joi.string().allow('')
 })
 
 
 const defaultLang = "en";
 
 module.exports = {
-    getProducts,
-    getProductBySlugOrID,
-    addProduct,
-    updateProduct,
-    deleteProduct
+    getBlogs,
+    getBlogBySlugOrID,
+    addBlog,
+    updateBlog,
+    deleteBlog
 }
 
 
-//      Get all Products 
+//      Get all blogs 
 
-function getProducts (req, res, next) {
-    const lang = req.query.lang || defaultLang;    
+function getBlogs (req, res, next) {
+    const {lang = defaultLang, search} = req.query;       
 
-    productModel.getProductsWithLang(lang)  
-        .then(products => {
-            res.status(200).json(products);
+    blogModel.getBlogsWithLang(lang, search)  
+        .then(blogs => {
+            res.status(200).json(blogs);
         })
         .catch(error => {
             next(
@@ -72,26 +68,26 @@ function getProducts (req, res, next) {
 
 
 
-//      Get Product by ID / slug
+//      Get Blog by ID / slug
 
-function getProductBySlugOrID (req, res, next) {
+function getBlogBySlugOrID (req, res, next) {
     const param = req.params.slugOrID;
     const lang = req.query.lang || defaultLang;
 
     const modelFunction = 
     isNaN(Number(param)) ?
-    "getProductBySlugWithLang" :
-    "getProductByIDWithLang" 
+    "getBlogBySlugWithLang" :
+    "getBlogByIDWithLang" 
 
-    productModel[modelFunction](param, lang) 
-        .then(product => {
-            if (product) {
-                res.status(200).json(product);
+    blogModel[modelFunction](param, lang) 
+        .then(blog => {
+            if (blog) {
+                res.status(200).json(blog);
             } else {
                 next(
                     {
                         statusCode: 404,
-                        message: "The product Not Found",
+                        message: "The blog Not Found",
                     }
                 )
             }
@@ -108,19 +104,19 @@ function getProductBySlugOrID (req, res, next) {
 }
 
 
-//      Add Product
+//      Add Blog
 
-function addProduct (req, res, next) {
+function addBlog (req, res, next) {
     const formData = {...req.body};
     const file = req.file;
     const filePath = file ? path.resolve(file.path) : null;
-    const newProduct = {
+    const newBlog = {
         ...formData,    
         image: filePath
     }
-    const {translation, ...productData} = newProduct;
+    const {translation, ...blogData} = newBlog;
 
-    const {error} = productInsertSchema.validate(newProduct, {abortEarly: false})  
+    const {error} = blogInsertSchema.validate(newBlog, {abortEarly: false})  
     
     if (error) {
         filePath && fileDelete(filePath);  
@@ -137,13 +133,13 @@ function addProduct (req, res, next) {
         
     } else {
 
-        productModel.getProductBySlug(productData.slug)
+        blogModel.getBlogBySlug(blogData.slug)
             .then(data => {
                 if (data) {
                     filePath && fileDelete(filePath);
                     next({
                         statusCode: 409,  // Conflict
-                        message: `'${productData.slug}' this slug already exist`,
+                        message: `'${blogData.slug}' this slug already exist`,
                         data
                     })
                 } else {
@@ -155,15 +151,15 @@ function addProduct (req, res, next) {
                                 if (!existLang) {
                                     translation.push({
                                         langCode: lang.langCode,
-                                        title: productData.slug,
+                                        title: blogData.slug,
                                     })
                                 }
                             });
     
-                            productModel.addProduct(productData, translation)
+                            blogModel.addBlog(blogData, translation)
                                 .then(id => {
                                     res.status(201).json({
-                                        message: "Product successfully inserted",
+                                        message: "blog successfully inserted",
                                         data: {id}
                                     })
                                 })
@@ -171,7 +167,7 @@ function addProduct (req, res, next) {
                                     filePath && fileDelete(filePath);
                                     next({
                                         statusCode: 500,
-                                        message: "An error occurred while adding product",
+                                        message: "An error occurred while adding blog",
                                         error
                                     })
                                 })  
@@ -183,60 +179,57 @@ function addProduct (req, res, next) {
                 filePath && fileDelete(filePath);
                 next({
                     statusCode: 500,
-                    message: "Unexpected error occurred while adding product",
+                    message: "Unexpected error occurred while adding blog",
                     error
                 })
             })
     }
 }
 
-// const exampleNewProduct = {
-//     slug: "product1",
-//     category_id: 1,
-//     date: "2023-02-14",   // YYYY-MM-DD  (ISO)
+// const exampleNewBlog = {
+//     slug: "blog-1",
 //     image: null,
 //     translation: [
 //         {
 //             langCode: "en",
-//             title: "Product 1",
+//             title: "Blog 1",
 //             desc: "",
-//             client: "",
-//             location: ""
+//             shortDesc: ""
 //         },
 //         {
 //             langCode: "az",
-//             title: "Mehsul 1",
+//             title: "Bloq 1",
 //             desc: "",
-//             client: "",
-//             location: ""
+//             shortDesc: ""
 //         }
 //     ]
 // }
 
 
 
-//      Update Product
+//      Update blog
 
-function updateProduct(req, res, next) {
+function updateBlog(req, res, next) {
     const {id} = req.params;
     const formData = {...req.body};
     const file = req.file;
     const filePath = file ? path.resolve(file.path) : null;
     
-    const {id: productID, slug, category_id, image, date, translationID, langCode, title, desc, client, location} = formData,
-    productData = {id: productID, slug, category_id, image, date},
-    translationData = {id: translationID, product_id: id, langCode, title, desc, client, location};     
+    const {id: blogID, slug, image, updated_at, translationID, langCode, title, desc, shortDesc} = formData,
+    blogData = {id: blogID, slug, image, updated_at},
+    translationData = {id: translationID, blog_id: id, langCode, title, desc, shortDesc}; 
+    
+    
 
     if (filePath) {
-        productData.image = filePath
+        blogData.image = filePath
     } else {
-        if (productData.image !== null) {
-            Reflect.deleteProperty(productData, "image");
+        if (blogData.image !== null) {
+            Reflect.deleteProperty(blogData, "image");
         }
     }   
 
-    const {error} = productUpdateSchema.validate(formData, {abortEarly: false})   
-
+    const {error} = blogUpdateSchema.validate(formData, {abortEarly: false})   
 
     if (error) {
         filePath && fileDelete(filePath);
@@ -252,23 +245,23 @@ function updateProduct(req, res, next) {
         })  
         
     } else {
-        productModel.getProductByID(id)
+        blogModel.getBlogByID(id)
             .then(data => {
                 if (data) {
-                    productModel.updateProduct(id, productData, translationData)
+                    blogModel.updateBlog(id, blogData, translationData)
                         .then(() =>{
-                            Reflect.has(productData, "image") && data.image &&
+                            Reflect.has(blogData, "image") && data.image &&
                             fileDelete(data.image);
 
                             res.status(200).json({
-                                message: "product updated successfully"
+                                message: "blog updated successfully"
                             })
                         })
                         .catch(error => {
                             filePath && fileDelete(filePath);
                             next({
                                 statusCode: 500,
-                                message: "Internal Server Error: An error occurred while updating product",
+                                message: "Internal Server Error: An error occurred while updating blog",
                                 error
                             })
                         })
@@ -276,7 +269,7 @@ function updateProduct(req, res, next) {
                     filePath && fileDelete(filePath);
                     next({
                         statusCode: 404,
-                        message: "The product not found"
+                        message: "The blog not found"
                     })
                 }
             })
@@ -284,41 +277,40 @@ function updateProduct(req, res, next) {
                 filePath && fileDelete(filePath);
                 next({
                     statusCode: 500,
-                    message: "Internal Server Error: Unexpected occurred while updating product",
+                    message: "Internal Server Error: Unexpected occurred while updating blog",
                     error
                 })
             })
     }
 }
 
-// const exampleEditProduct = {
+// const exampleEditBlog = {
 //     id: 1,
-//     slug: "test-1",
-//     category_id: 1,
+//     slug: "blog-1",
 //     image: null,
-//     date: "2024-01-02",
-//     translationID: 5,
+//     created_at: "2024.05.22",   //  optional    
+//     updated_at: "2024.05.22",   //  optional
+//     translationID: 5,   
 //     langCode: "en",
-//     title: "Test",
+//     title: "Blog 1",
 //     desc: "",
-//     client: "",
-//     location: ""
+//     shortDesc: ""
 // }
 
 
 
-//      delete Product
+//      delete Blog
 
-function deleteProduct(req, res, next) {
+function deleteBlog(req, res, next) {
     const {id} = req.params;
     let imagePath;
 
-    productModel.getProductByID(id)
+    blogModel.getBlogByID(id)
         .then(data => {
             if (data) {
                 imagePath = data.image || null;
 
-                productModel.deleteProduct(id)
+                blogModel.deleteBlog(id)
                     .then((deletedCount) => {                        
                         if (deletedCount) {
                             imagePath && fileDelete(imagePath);
@@ -326,28 +318,28 @@ function deleteProduct(req, res, next) {
                         } else {
                             next({
                                 statusCode: 500,
-                                message: "Internal Server Error: An error occurred while deleting product"
+                                message: "Internal Server Error: An error occurred while deleting blog"
                             })
                         }
                     }) 
                     .catch(error => {
                         next({
                             statusCode: 500,
-                            message: "Internal Server Error: Unexpected occurred while deleting product",
+                            message: "Internal Server Error: Unexpected occurred while deleting blog",
                             error
                         })
                     })
             } else {
                 next({
                     statusCode: 404,
-                    message: "The product not found"
+                    message: "The blog not found"
                 })
             }
         })
         .catch(error => {
             next({
                 statusCode: 500,
-                message: "Internal Server Error: Unexpected occurred while deleting product",
+                message: "Internal Server Error: Unexpected occurred while deleting blog",
                 error
             })
         })
