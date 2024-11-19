@@ -17,6 +17,7 @@ const productRouter = require("./product/product_router");
 const blogRouter = require("./blog/blog_router");
 const findUsRouter = require("./findUs/findUs_router");
 const aboutRouter = require("./about/about_router");
+const ourValuesRouter = require("./ourValues/ourValues_router");
 
 
 
@@ -52,6 +53,9 @@ router.use("/blog", blogRouter);
 router.use("/findUs", findUsRouter);
 
 router.use("/about", aboutRouter);
+
+router.use("/ourValues", ourValuesRouter);
+
 
 
 

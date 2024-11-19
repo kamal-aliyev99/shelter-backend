@@ -2,6 +2,7 @@
 
 const router = require("express").Router();
 const upload = require("../../middlewares/fileUpload"); 
+const checkUpdateIDMiddleware = require("../../middlewares/CheckUpdateID")
 const partnerController = require("../../controllers/partner/partner_controller");
 
 
@@ -15,7 +16,7 @@ router.get("/:id", partnerController.getStaticImageByID);
 
 router.post("/", upload("partner-images").single("image"), partnerController.addPartner);  
 
-router.patch("/:id", upload("partner-images").single("image"), partnerController.updatePartner);
+router.patch("/:id", checkUpdateIDMiddleware, upload("partner-images").single("image"), partnerController.updatePartner);
 
 router.delete("/:id", partnerController.deletePartner);  
 

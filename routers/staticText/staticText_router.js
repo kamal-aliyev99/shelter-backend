@@ -1,6 +1,7 @@
 // URL :  /api/staticText?lang=en
 
 const router = require("express").Router();
+const checkUpdateIDMiddleware = require("../../middlewares/CheckUpdateID")
 const staticTextController = require("../../controllers/staticText/staticText_controller")
 
 
@@ -14,7 +15,7 @@ router.get("/:keyOrID", staticTextController.getStaticTextByKeyOrID);
 
 router.post("/", staticTextController.addStaticText);
 
-router.patch("/:id", staticTextController.updateStaticText);
+router.patch("/:id", checkUpdateIDMiddleware, staticTextController.updateStaticText);
 
 router.delete("/:id", staticTextController.deleteStaticText);
 

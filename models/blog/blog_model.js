@@ -16,7 +16,7 @@ module.exports = {
 //      Get all blogs
 
 function getBlogs () {
-    return db("product");
+    return db("blog");
 }
 
 
@@ -92,8 +92,7 @@ function getBlogBySlugWithLang(slug, lang) {
             "blog_translate.id as translationID",
             "blog_translate.title",
             "blog_translate.desc",
-            "blog_translate.client",
-            "blog_translate.location",
+            "blog_translate.shortDesc",
             "lang.langCode"
         )
         .where("blog.slug", slug)

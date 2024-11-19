@@ -3,6 +3,7 @@
 const router = require("express").Router();
 const upload = require("../../middlewares/fileUpload"); 
 const setUpdateMiddleware = require("../../middlewares/setUpdateDate"); 
+const checkUpdateIDMiddleware = require("../../middlewares/CheckUpdateID")
 const blogController = require("../../controllers/blog/blog_controller");
 
 
@@ -16,7 +17,7 @@ router.get("/:slugOrID", blogController.getBlogBySlugOrID);
 
 router.post("/", upload("blog-images").single("image"), blogController.addBlog);  
 
-router.patch("/:id", upload("blog-images").single("image"), setUpdateMiddleware, blogController.updateBlog);
+router.patch("/:id", checkUpdateIDMiddleware, upload("blog-images").single("image"), setUpdateMiddleware, blogController.updateBlog);
 
 router.delete("/:id", blogController.deleteBlog);  
 

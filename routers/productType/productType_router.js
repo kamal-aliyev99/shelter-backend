@@ -1,6 +1,7 @@
 // URL :  /api/productType
 
 const router = require("express").Router();
+const checkUpdateIDMiddleware = require("../../middlewares/CheckUpdateID")
 const productTypeController = require("../../controllers/productType/productType_controller"); 
 
 
@@ -14,7 +15,7 @@ router.get("/:slugOrID", productTypeController.getProductTypeBySlugOrID);
 
 router.post("/", productTypeController.addProductType);  
 
-router.patch("/:id", productTypeController.updateproductType);
+router.patch("/:id", checkUpdateIDMiddleware, productTypeController.updateproductType);
 
 router.delete("/:id", productTypeController.deleteProductType);  
 
