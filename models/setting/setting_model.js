@@ -25,9 +25,9 @@ function getSettingByKey (key) {
         .first()
 }
 
-function addSetting (newBanner) { 
+function addSetting (newSetting) { 
     return db("setting")
-        .insert(newBanner)
+        .insert(newSetting)
         .returning("*")
         .then(([data]) => data)
 }

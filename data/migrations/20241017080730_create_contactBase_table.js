@@ -8,10 +8,12 @@ exports.up = function(knex) {
         table.increments("id").primary();
         table.integer("findUs_id").unsigned().notNullable();  // other id 0 olacag
         table.string("findUs_other");
-        table.string("name").notNullable();
-        table.string("surname").notNullable();
+        table.string("fullName").notNullable();
+        table.string("phone").notNullable();
         table.string("email").notNullable();
         table.text("message");
+        table.timestamp("created_at").defaultTo(knex.fn.now());  
+        table.boolean("isRead").defaultTo(false);
 
         table
           .foreign("findUs_id")

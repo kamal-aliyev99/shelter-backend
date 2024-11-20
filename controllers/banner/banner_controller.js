@@ -45,7 +45,7 @@ function getBanners (req, res, next) {
 
 
 
-//      G E T    B A N N E R   b y   I D
+//      G E T    B A N N E R   b y   I D / page
 
 function getBannerByPageOrID (req, res, next) {
     const {pageOrID} = req.params;
