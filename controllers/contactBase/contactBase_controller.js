@@ -38,18 +38,16 @@ module.exports = {
 //      G E T    A L L    contactBase
 
 function getContactBase (req, res, next) {
-    contactBaseModel.getContactBase()  // edit
+    contactBaseModel.getContactBase()  
         .then(contactBase => {
             res.status(200).json(contactBase);
         })
         .catch(error => {
-            next(
-                {
-                    statusCode: 500,
-                    message: "Internal Server Error",
-                    error
-                }
-            )
+            next({
+                statusCode: 500,
+                message: "Internal Server Error",
+                error
+            })
         })
 }
 

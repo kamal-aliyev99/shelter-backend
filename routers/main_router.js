@@ -19,6 +19,7 @@ const findUsRouter = require("./findUs/findUs_router");
 const aboutRouter = require("./about/about_router");
 const ourValuesRouter = require("./ourValues/ourValues_router");
 const contactBaseRouter = require("./contactBase/contactBase_router");
+const userRouter = require("./user/user_router");
 
 
 
@@ -59,6 +60,7 @@ router.use("/ourValues", ourValuesRouter);
 
 router.use("/contactBase", contactBaseRouter);
 
+router.use("/auth", userRouter);
 
 
 

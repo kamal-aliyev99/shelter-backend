@@ -10,7 +10,7 @@ exports.up = function(knex) {
         table.string("username").unique().notNullable();
         table.string("email").unique().notNullable();
         table.string("password_hash").notNullable(); 
-        table.integer("role").notNullable();
+        table.integer("role").notNullable().defaultTo(2);   // 0 - Head Admin, 1 - admins, 2 - users (default)
         table.timestamps(true, true);
     })
 };
