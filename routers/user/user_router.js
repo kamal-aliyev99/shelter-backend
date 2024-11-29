@@ -25,3 +25,5 @@ router.post("/register", userController.registerUser);
 
 module.exports = router
 
+// access token  -> session'da 
+// refresh token -> cookie'de  

@@ -84,7 +84,9 @@ function getLangByID (req, res, next) {
 function addLang (req, res, next) {   
     const formData = req.body;
     const file = req.file;
-    const filePath = file ? path.resolve(file.path) : null;
+    const filePath = file ? 
+    `${req.protocol}://${req.get('host')}/${path.posix.join(...file.path.split(path.sep))}` 
+    : null;
     const newLang = {
         ...formData,
         image: filePath
@@ -154,7 +156,9 @@ function updateLang (req, res, next) {
     const formData = {...req.body};
 
     const file = req.file;
-    const filePath = file ? path.resolve(file.path) : null;
+    const filePath = file ? 
+    `${req.protocol}://${req.get('host')}/${path.posix.join(...file.path.split(path.sep))}` 
+    : null;
 
     let editData;
 

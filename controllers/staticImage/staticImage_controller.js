@@ -87,7 +87,9 @@ function getStaticImageByKeyorID (req, res, next) {
 function addStaticImage (req, res, next) {   
     const formData = {...req.body};
     const file = req.file;
-    const filePath = file ? path.resolve(file.path) : null;
+    const filePath = file ? 
+    `${req.protocol}://${req.get('host')}/${path.posix.join(...file.path.split(path.sep))}` 
+    : null;
     const newStaticImage = {
         ...formData,
         image: filePath
@@ -157,7 +159,9 @@ function updateStaticImage (req, res, next) {
     const formData = {...req.body};
 
     const file = req.file;
-    const filePath = file ? path.resolve(file.path) : null;
+    const filePath = file ? 
+    `${req.protocol}://${req.get('host')}/${path.posix.join(...file.path.split(path.sep))}` 
+    : null;
 
     let editData;
 

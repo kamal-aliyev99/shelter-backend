@@ -1,7 +1,14 @@
+require('dotenv').config();
+
 const express = require("express");
 const server = express();
+const cors = require("cors");
+const path = require("path")
+
+server.use(cors());
 server.use(express.json())
-server.use('/public', express.static('public'));
+server.use('/public', express.static(path.join(__dirname, 'public')));
+
 
 /* Middlewares */
 

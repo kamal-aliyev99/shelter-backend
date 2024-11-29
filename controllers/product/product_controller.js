@@ -113,7 +113,9 @@ function getProductBySlugOrID (req, res, next) {
 function addProduct (req, res, next) {
     const formData = {...req.body};
     const file = req.file;
-    const filePath = file ? path.resolve(file.path) : null;
+    const filePath = file ? 
+    `${req.protocol}://${req.get('host')}/${path.posix.join(...file.path.split(path.sep))}` 
+    : null;
     const newProduct = {
         ...formData,    
         image: filePath
@@ -221,7 +223,9 @@ function updateProduct(req, res, next) {
     const {id} = req.params;
     const formData = {...req.body};
     const file = req.file;
-    const filePath = file ? path.resolve(file.path) : null;
+    const filePath = file ? 
+    `${req.protocol}://${req.get('host')}/${path.posix.join(...file.path.split(path.sep))}` 
+    : null;
     
     const {id: productID, slug, category_id, image, date, translationID, langCode, title, desc, client, location} = formData,
     productData = {id: productID, slug, category_id, image, date},

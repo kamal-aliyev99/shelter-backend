@@ -105,7 +105,9 @@ function getServiceBySlugOrID (req, res, next) {
 function addService (req, res, next) {
     const formData = {...req.body};
     const file = req.file;
-    const filePath = file ? path.resolve(file.path) : null;
+    const filePath = file ? 
+    `${req.protocol}://${req.get('host')}/${path.posix.join(...file.path.split(path.sep))}` 
+    : null;
     const newService = {
         ...formData,    
         image: filePath
@@ -208,7 +210,9 @@ function updateService(req, res, next) {
     const {id} = req.params;
     const formData = {...req.body};
     const file = req.file;
-    const filePath = file ? path.resolve(file.path) : null;
+    const filePath = file ? 
+    `${req.protocol}://${req.get('host')}/${path.posix.join(...file.path.split(path.sep))}` 
+    : null;
     
     const {id: serviceID, slug, image, translationID, langCode, title, desc} = formData,
     serviceData = {id: serviceID, slug, image},

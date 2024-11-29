@@ -14,9 +14,9 @@ router.get("/:id", langController.getLangByID);
 
 router.post("/", upload("lang-flags").single("image"), langController.addLang)
 
-router.delete("/:id", checkUpdateIDMiddleware, langController.deleteLang)
+router.delete("/:id", langController.deleteLang)
 
-router.patch("/:id", upload("lang-flags").single("image"), langController.updateLang)
+router.patch("/:id", checkUpdateIDMiddleware, upload("lang-flags").single("image"), langController.updateLang)
 
 
 module.exports = router

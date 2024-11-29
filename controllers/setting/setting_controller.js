@@ -87,7 +87,9 @@ function getSettingByKeyOrID (req, res, next) {
 function addSetting (req, res, next) {   
     const formData = {...req.body};
     const file = req.file;
-    const filePath = file ? path.resolve(file.path) : null;
+    const filePath = file ? 
+    `${req.protocol}://${req.get('host')}/${path.posix.join(...file.path.split(path.sep))}` 
+    : null;
     const newSetting = 
     filePath ? 
     {
@@ -162,7 +164,9 @@ function updateSetting (req, res, next) {
     const formData = {...req.body};
 
     const file = req.file;
-    const filePath = file ? path.resolve(file.path) : null;
+    const filePath = file ? 
+    `${req.protocol}://${req.get('host')}/${path.posix.join(...file.path.split(path.sep))}` 
+    : null;
 
     let editData =
     filePath ? 

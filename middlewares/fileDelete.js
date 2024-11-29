@@ -5,7 +5,7 @@ function fileDelete (filePath) {
         fs.unlink(filePath, (error) => {
             if (error) {
                 console.log({
-                    errorMessage: `File couldn't delete: '${filePath}'`,
+                    message: `File couldn't delete: '${filePath}'`,
                     error
                 });
             } else {

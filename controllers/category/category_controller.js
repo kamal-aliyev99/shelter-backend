@@ -105,7 +105,9 @@ function getCategoryBySlugOrID (req, res, next) {
 function addCategory (req, res, next) {
     const formData = {...req.body};
     const file = req.file;
-    const filePath = file ? path.resolve(file.path) : null;
+    const filePath = file ? 
+    `${req.protocol}://${req.get('host')}/${path.posix.join(...file.path.split(path.sep))}` 
+    : null;
     const newCategory = {
         ...formData,    
         image: filePath
@@ -206,7 +208,9 @@ function updateCategory(req, res, next) {
     const {id} = req.params;
     const formData = {...req.body};
     const file = req.file;
-    const filePath = file ? path.resolve(file.path) : null;
+    const filePath = file ? 
+    `${req.protocol}://${req.get('host')}/${path.posix.join(...file.path.split(path.sep))}` 
+    : null;
     
     const {id: categoryID, slug, productType_id, image, translationID, langCode, title} = formData,
     categoryData = {id: categoryID, slug, productType_id, image},
