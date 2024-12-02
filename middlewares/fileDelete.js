@@ -1,6 +1,8 @@
 const fs = require("fs");
+const path = require("path");
 
-function fileDelete (filePath) {
+function fileDelete (filePathURL) {
+    const filePath = path.resolve(`public/${filePathURL.split("/public/")[1]}`)
     if (fs.existsSync(filePath)) {
         fs.unlink(filePath, (error) => {
             if (error) {
