@@ -30,7 +30,7 @@ module.exports = {
 
 function getLangs (req, res, next) {
     langModel.getLangs()
-        .then(langs => {
+        .then(langs => { 
             res.status(200).json(langs);
         })
         .catch(error => {
@@ -154,6 +154,8 @@ function addLang (req, res, next) {
 function updateLang (req, res, next) {
     const {id} = req.params;
     const formData = {...req.body};
+    console.log(formData);
+    
 
     const file = req.file;
     const filePath = file ? 
