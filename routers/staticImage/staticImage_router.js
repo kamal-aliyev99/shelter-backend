@@ -16,7 +16,7 @@ router.get("/:keyOrID", staticImageController.getStaticImageByKeyorID);
 
 router.post("/", upload("static-Images").single("image"), staticImageController.addStaticImage);  
 
-router.patch("/:id", checkUpdateIDMiddleware, upload("static-Images").single("image"), staticImageController.updateStaticImage);
+router.patch("/:id", upload("static-Images").single("image"), checkUpdateIDMiddleware, staticImageController.updateStaticImage);
 
 router.delete("/:id", staticImageController.deleteStaticImage);  
 

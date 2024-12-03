@@ -16,7 +16,7 @@ router.get("/:id", partnerController.getStaticImageByID);
 
 router.post("/", upload("partner-images").single("image"), partnerController.addPartner);  
 
-router.patch("/:id", checkUpdateIDMiddleware, upload("partner-images").single("image"), partnerController.updatePartner);
+router.patch("/:id", upload("partner-images").single("image"), checkUpdateIDMiddleware, partnerController.updatePartner);
 
 router.delete("/:id", partnerController.deletePartner);  
 

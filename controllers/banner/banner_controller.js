@@ -158,6 +158,10 @@ function updateBanner (req, res, next) {
     const {id} = req.params;
     const formData = {...req.body};
 
+    if (formData.image === "null") {
+        formData.image = null;
+    }
+
     const file = req.file;
     const filePath = file ? 
     `${req.protocol}://${req.get('host')}/${path.posix.join(...file.path.split(path.sep))}` 

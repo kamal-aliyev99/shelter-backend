@@ -16,7 +16,7 @@ router.get("/:pageOrID", bannerController.getBannerByPageOrID);
 
 router.post("/", upload("banner-images").single("image"), bannerController.addBanner);
 
-router.patch("/:id", checkUpdateIDMiddleware, upload("banner-images").single("image"), bannerController.updateBanner);
+router.patch("/:id", upload("banner-images").single("image"), checkUpdateIDMiddleware, bannerController.updateBanner);
 
 router.delete("/:id", bannerController.deleteBanner);
 
