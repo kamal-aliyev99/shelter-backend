@@ -1,8 +1,8 @@
 const settingModel = require("../../models/setting/setting_model");
-const fileDelete = require("../../middlewares/fileDelete");
+// const fileDelete = require("../../middlewares/fileDelete");
 
 const Joi = require("joi");
-const path = require("path");
+// const path = require("path");
 
 const settingInsertSchema = Joi.object({
     key: Joi.string().max(255).required(),
@@ -86,24 +86,10 @@ function getSettingByKeyOrID (req, res, next) {
 
 function addSetting (req, res, next) {   
     const formData = {...req.body};
-    const file = req.file;
-    const filePath = file ? 
-    `${req.protocol}://${req.get('host')}/${path.posix.join(...file.path.split(path.sep))}` 
-    : null;
-    const newSetting = 
-    filePath ? 
-    {
-        ...formData,
-        value: filePath
-    }  :  
-    {...formData}
 
-    
-    
-    const {error} = settingInsertSchema.validate(newSetting, {abortEarly: false})    
+    const {error} = settingInsertSchema.validate(formData, {abortEarly: false})    
     
     if (error) {
-        filePath && fileDelete(filePath);  // insert ugurlu olmasa sekil yuklenmesin,, silsin
         const errors = error.details.map(err => ({  // error sebebi
             field: err.context.key,
             message: err.message
@@ -116,17 +102,16 @@ function addSetting (req, res, next) {
         })  
         
     } else {
-        settingModel.getSettingByKey(newSetting.key)
+        settingModel.getSettingByKey(formData.key)
             .then(data => {
                 if (data) {
-                    filePath && fileDelete(filePath);
                     next({
                         statusCode: 409,  // Conflict
-                        message: `'${newSetting.key}' this key already exist`,
+                        message: `'${formData.key}' this key already exist`,
                         data
                     })
                 } else {
-                    settingModel.addSetting(newSetting)
+                    settingModel.addSetting(formData)
                         .then(addedSetting => {
                             res.status(201).json({
                                 message: "Setting successfully inserted",
@@ -134,7 +119,6 @@ function addSetting (req, res, next) {
                             });
                         })
                         .catch(error => {
-                            filePath && fileDelete(filePath);
                             next({
                                 statusCode: 500,
                                 message: "An error occurred while adding setting",
@@ -144,7 +128,6 @@ function addSetting (req, res, next) {
                 }
             })
             .catch(error => {
-                filePath && fileDelete(filePath);
                 next({
                     statusCode: 500,
                     message: "Unexpected error occurred while adding setting",
@@ -162,24 +145,10 @@ function addSetting (req, res, next) {
 function updateSetting (req, res, next) {
     const {id} = req.params;
     const formData = {...req.body};
-
-    const file = req.file;
-    const filePath = file ? 
-    `${req.protocol}://${req.get('host')}/${path.posix.join(...file.path.split(path.sep))}` 
-    : null;
-
-    let editData =
-    filePath ? 
-    {
-        ...formData,
-        value: filePath
-    }  :  
-    {...formData};
     
-    const {error} = settingUpdateSchema.validate(editData, {abortEarly: false})   
+    const {error} = settingUpdateSchema.validate(formData, {abortEarly: false})   
 
     if (error) {
-        filePath && fileDelete(filePath);
         const errors = error.details.map(err => ({  // error sebebi
             field: err.context.key,
             message: err.message
@@ -195,15 +164,11 @@ function updateSetting (req, res, next) {
         settingModel.getSettingByID(id)
             .then(data => {
                 if (data) {
-                    settingModel.updateSetting(id, editData)
+                    settingModel.updateSetting(id, formData)
                         .then(updatedData => {                            
-                            Reflect.has(editData, "value") && data.value &&
-                            fileDelete(data.value);
-
                             res.status(200).json({ message: "Setting updated successfully", data: updatedData });
                         })
                         .catch(error => {
-                            filePath && fileDelete(filePath);
                             next({
                                 statusCode: 500,
                                 message: "Internal Server Error: An error occurred while updating setting",
@@ -211,7 +176,6 @@ function updateSetting (req, res, next) {
                             })
                         })
                 } else {
-                    filePath && fileDelete(filePath);
                     next({
                         statusCode: 404,
                         message: "The setting not found"
@@ -219,7 +183,6 @@ function updateSetting (req, res, next) {
                 }
             })
             .catch(error => {
-                filePath && fileDelete(filePath);
                 next({
                     statusCode: 500,
                     message: "Internal Server Error: Unexpected occurred while updating setting",
@@ -236,17 +199,13 @@ function updateSetting (req, res, next) {
 
 function deleteSetting (req, res, next) {
     const {id} = req.params;
-    let imagePath;
 
     settingModel.getSettingByID(id)
         .then(data => {
             if (data) {
-                imagePath = data.value || null;
-
                 settingModel.deleteSetting(id)
                     .then(deletedCount => {
                         if (deletedCount) {
-                            imagePath && fileDelete(imagePath);
                             res.status(204).end();
                         } else {
                             next({

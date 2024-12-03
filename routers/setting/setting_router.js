@@ -1,7 +1,8 @@
 // URL :  /api/setting
 
 const router = require("express").Router();
-const upload = require("../../middlewares/fileUpload"); 
+const multer = require("multer");
+const upload = multer();
 const checkUpdateIDMiddleware = require("../../middlewares/CheckUpdateID")
 const settingController = require("../../controllers/setting/setting_controller")
 
@@ -14,9 +15,9 @@ router.get("/", settingController.getSettings);
 
 router.get("/:keyOrID", settingController.getSettingByKeyOrID);
 
-router.post("/", upload("setting-images").single("value"), settingController.addSetting);
+router.post("/", upload.none(), settingController.addSetting);
 
-router.patch("/:id", checkUpdateIDMiddleware, upload("setting-images").single("value"), settingController.updateSetting);
+router.patch("/:id", upload.none(), checkUpdateIDMiddleware, settingController.updateSetting);
 
 router.delete("/:id", settingController.deleteSetting);
 
