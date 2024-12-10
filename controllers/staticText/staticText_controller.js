@@ -63,9 +63,10 @@ function getStaticTexts (req, res, next) {
 function getStaticTextByKeyOrID (req, res, next) {
     const param = req.params.keyOrID;
     const lang = req.query.lang || defaultLang;
+    const isParamNaN = isNaN(Number(param))
 
     const modelFunction = 
-    isNaN(Number(param)) ?
+    isParamNaN ?
     "getStaticTextByKeyWithLang" :
     "getStaticTextByIDWithLang" 
 
@@ -74,12 +75,28 @@ function getStaticTextByKeyOrID (req, res, next) {
             if (staticText) {
                 res.status(200).json(staticText);
             } else {
-                next(
-                    {
-                        statusCode: 404,
-                        message: "The staticText Not Found",
-                    }
-                )
+                if (!isParamNaN) {
+                    staticTextModel.getStaticTextByID(param)
+                        .then(data => {
+                            if (data) {
+                                res.status(200).json(data);
+                            } else {
+                                next(
+                                    {
+                                        statusCode: 404,
+                                        message: "The staticText Not Found",
+                                    }
+                                )
+                            }
+                        })
+                } else {
+                    next(
+                        {
+                            statusCode: 404,
+                            message: "The staticText Not Found",
+                        }
+                    )
+                }
             }
         })
         .catch(error => {
@@ -100,8 +117,9 @@ function getStaticTextByKeyOrID (req, res, next) {
 
 function addStaticText (req, res, next) {   
     const formData = {...req.body};
+    formData.translation = JSON.parse(formData.translation)
     const {translation, ...staticTextData} = formData;
-    
+        
     const {error} = staticTextInsertSchema.validate(formData, {abortEarly: false})    
     
     if (error) {
@@ -172,7 +190,7 @@ function addStaticText (req, res, next) {
 //     key: "home-page",   // same as en.value
 
 //     translation: [
-//         {langCode: "en", value: "Home page"},  // default for key
+//         {langCode: "en", value: "Home page"},  
 //         {langCode: "az", value: "Ana sehife"}
 //     ]
 // }

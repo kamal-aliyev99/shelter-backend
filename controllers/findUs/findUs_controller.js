@@ -100,6 +100,7 @@ function getFindUsByKeyOrID (req, res, next) {
 
 function addFindUs (req, res, next) {   
     const formData = {...req.body};
+    formData.translation = JSON.parse(formData.translation)
     const {translation, ...findUsData} = formData;
     
     const {error} = findUsInsertSchema.validate(formData, {abortEarly: false})    

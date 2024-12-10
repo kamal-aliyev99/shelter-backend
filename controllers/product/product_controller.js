@@ -112,6 +112,7 @@ function getProductBySlugOrID (req, res, next) {
 
 function addProduct (req, res, next) {
     const formData = {...req.body};
+    formData.translation = JSON.parse(formData.translation)
     const file = req.file;
     const filePath = file ? 
     `${req.protocol}://${req.get('host')}/${path.posix.join(...file.path.split(path.sep))}` 

@@ -21,7 +21,7 @@ function getStaticTexts() {   // not used
 }
 
 
-//      Get Datas - with Lang
+//      Get Datas - with Lang    (tercume olunmuyan dilde datalar hec gorsenmir !!! )
 
 function getStaticTextsWithLang(lang) {
     return db("staticText_translate")

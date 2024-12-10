@@ -108,6 +108,7 @@ function getBlogBySlugOrID (req, res, next) {
 
 function addBlog (req, res, next) {
     const formData = {...req.body};
+    formData.translation = JSON.parse(formData.translation)
     const file = req.file;
     const filePath = file ? 
     `${req.protocol}://${req.get('host')}/${path.posix.join(...file.path.split(path.sep))}` 

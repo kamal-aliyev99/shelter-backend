@@ -100,6 +100,7 @@ function getAboutByKeyOrID (req, res, next) {
 
 function addAbout (req, res, next) {   
     const formData = {...req.body};
+    formData.translation = JSON.parse(formData.translation)
     const {translation, ...aboutData} = formData;
     
     const {error} = aboutInsertSchema.validate(formData, {abortEarly: false})    

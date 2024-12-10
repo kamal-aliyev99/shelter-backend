@@ -100,6 +100,7 @@ function getProductTypeBySlugOrID (req, res, next) {
 
 function addProductType (req, res, next) {
     const formData = {...req.body};
+    formData.translation = JSON.parse(formData.translation)
 
     const {translation, ...productTypeData} = formData;
 

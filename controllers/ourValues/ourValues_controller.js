@@ -13,8 +13,8 @@ const ourValuesInsertSchema = Joi.object({
             Joi.object({
                 langCode: Joi.string().max(10).required(),
                 title: Joi.string().max(255).required(),
-                desc: Joi.string().allow(''),
-                shortDesc: Joi.string().allow('')
+                desc: Joi.string().allow('')
+                // shortDesc: Joi.string().allow('')
             })
         )
         .min(1) 
@@ -30,8 +30,8 @@ const ourValuesUpdateSchema = Joi.object({
     translationID: Joi.number().positive(),
     langCode: Joi.string().max(10),
     title: Joi.string().max(255).required(),
-    desc: Joi.string().allow(''),
-    shortDesc: Joi.string().allow('')
+    desc: Joi.string().allow('')
+    // shortDesc: Joi.string().allow('')
 })
 
 
@@ -108,6 +108,7 @@ function getOurValuesBySlugOrID (req, res, next) {
 
 function addOurValues (req, res, next) {
     const formData = {...req.body};
+    formData.translation = JSON.parse(formData.translation)
     const file = req.file;
     const filePath = file ? 
     `${req.protocol}://${req.get('host')}/${path.posix.join(...file.path.split(path.sep))}` 
