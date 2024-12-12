@@ -63,9 +63,10 @@ function getAbouts (req, res, next) {
 function getAboutByKeyOrID (req, res, next) {
     const param = req.params.keyOrID;
     const lang = req.query.lang || defaultLang;
+    const isParamNaN = isNaN(Number(param))
 
     const modelFunction = 
-    isNaN(Number(param)) ?
+    isParamNaN ?
     "getAboutByKeyWithLang" :
     "getAboutByIDWithLang" 
 
@@ -74,12 +75,28 @@ function getAboutByKeyOrID (req, res, next) {
             if (about) {
                 res.status(200).json(about);
             } else {
-                next(
-                    {
-                        statusCode: 404,
-                        message: "The about Not Found",
-                    }
-                )
+                if (!isParamNaN) {
+                    aboutModel.getAboutByID(param)
+                        .then(data => {
+                            if (data) {
+                                res.status(200).json(data);
+                            } else {
+                                next(
+                                    {
+                                        statusCode: 404,
+                                        message: "The about Not Found",
+                                    }
+                                )
+                            }
+                        })
+                } else {
+                    next(
+                        {
+                            statusCode: 404,
+                            message: "The about Not Found",
+                        }
+                    )
+                }
             }
         })
         .catch(error => {

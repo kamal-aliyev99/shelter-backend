@@ -69,9 +69,10 @@ function getCategories (req, res, next) {
 function getCategoryBySlugOrID (req, res, next) {
     const param = req.params.slugOrID;
     const lang = req.query.lang || defaultLang;
+    const isParamNaN = isNaN(Number(param))
 
     const modelFunction = 
-    isNaN(Number(param)) ?
+    isParamNaN ?
     "getCategoryBySlugWithLang" :
     "getCategoryByIDWithLang" 
 
@@ -80,12 +81,28 @@ function getCategoryBySlugOrID (req, res, next) {
             if (category) {
                 res.status(200).json(category);
             } else {
-                next(
-                    {
-                        statusCode: 404,
-                        message: "The category Not Found",
-                    }
-                )
+                if (!isParamNaN) {
+                    categoryModel.getCategoryByID(param)
+                        .then(data => {
+                            if (data) {
+                                res.status(200).json(data);
+                            } else {
+                                next(
+                                    {
+                                        statusCode: 404,
+                                        message: "The category Not Found",
+                                    }
+                                )
+                            }
+                        })
+                } else {
+                    next(
+                        {
+                            statusCode: 404,
+                            message: "The category Not Found",
+                        }
+                    )
+                }
             }
         })
         .catch(error => {

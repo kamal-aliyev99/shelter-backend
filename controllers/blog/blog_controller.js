@@ -73,9 +73,10 @@ function getBlogs (req, res, next) {
 function getBlogBySlugOrID (req, res, next) {
     const param = req.params.slugOrID;
     const lang = req.query.lang || defaultLang;
+    const isParamNaN = isNaN(Number(param))
 
     const modelFunction = 
-    isNaN(Number(param)) ?
+    isParamNaN ?
     "getBlogBySlugWithLang" :
     "getBlogByIDWithLang" 
 
@@ -84,12 +85,28 @@ function getBlogBySlugOrID (req, res, next) {
             if (blog) {
                 res.status(200).json(blog);
             } else {
-                next(
-                    {
-                        statusCode: 404,
-                        message: "The blog Not Found",
-                    }
-                )
+                if (!isParamNaN) {
+                    blogModel.getBlogByID(param)
+                        .then(data => {
+                            if (data) {
+                                res.status(200).json(data);
+                            } else {
+                                next(
+                                    {
+                                        statusCode: 404,
+                                        message: "The blog Not Found",
+                                    }
+                                )
+                            }
+                        })
+                } else {
+                    next(
+                        {
+                            statusCode: 404,
+                            message: "The blog Not Found",
+                        }
+                    )
+                }
             }
         })
         .catch(error => {

@@ -77,9 +77,10 @@ function getProducts (req, res, next) {
 function getProductBySlugOrID (req, res, next) {
     const param = req.params.slugOrID;
     const lang = req.query.lang || defaultLang;
+    const isParamNaN = isNaN(Number(param))
 
     const modelFunction = 
-    isNaN(Number(param)) ?
+    isParamNaN ?
     "getProductBySlugWithLang" :
     "getProductByIDWithLang" 
 
@@ -88,12 +89,28 @@ function getProductBySlugOrID (req, res, next) {
             if (product) {
                 res.status(200).json(product);
             } else {
-                next(
-                    {
-                        statusCode: 404,
-                        message: "The product Not Found",
-                    }
-                )
+                if (!isParamNaN) {
+                    productModel.getProductByID(param)
+                        .then(data => {
+                            if (data) {
+                                res.status(200).json(data);
+                            } else {
+                                next(
+                                    {
+                                        statusCode: 404,
+                                        message: "The product Not Found",
+                                    }
+                                )
+                            }
+                        })
+                } else {
+                    next(
+                        {
+                            statusCode: 404,
+                            message: "The product Not Found",
+                        }
+                    )
+                }
             }
         })
         .catch(error => {

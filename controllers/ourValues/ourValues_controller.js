@@ -73,9 +73,10 @@ function getOurValues (req, res, next) {
 function getOurValuesBySlugOrID (req, res, next) {
     const param = req.params.slugOrID;
     const lang = req.query.lang || defaultLang;
+    const isParamNaN = isNaN(Number(param))
 
     const modelFunction = 
-    isNaN(Number(param)) ?
+    isParamNaN ?
     "getOurValuesBySlugWithLang" :
     "getOurValuesByIDWithLang" 
 
@@ -84,12 +85,28 @@ function getOurValuesBySlugOrID (req, res, next) {
             if (ourValues) {
                 res.status(200).json(ourValues);
             } else {
-                next(
-                    {
-                        statusCode: 404,
-                        message: "The ourValues Not Found",
-                    }
-                )
+                if (!isParamNaN) {
+                    ourValuesModel.getOurValuesByID(param)
+                        .then(data => {
+                            if (data) {
+                                res.status(200).json(data);
+                            } else {
+                                next(
+                                    {
+                                        statusCode: 404,
+                                        message: "The ourValue Not Found",
+                                    }
+                                )
+                            }
+                        })
+                } else {
+                    next(
+                        {
+                            statusCode: 404,
+                            message: "The ourValue Not Found",
+                        }
+                    )
+                }
             }
         })
         .catch(error => {

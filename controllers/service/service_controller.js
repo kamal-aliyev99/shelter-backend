@@ -69,9 +69,10 @@ function getServices (req, res, next) {
 function getServiceBySlugOrID (req, res, next) {
     const param = req.params.slugOrID;
     const lang = req.query.lang || defaultLang;
+    const isParamNaN = isNaN(Number(param))
 
     const modelFunction = 
-    isNaN(Number(param)) ?
+    isParamNaN ?
     "getServiceBySlugWithLang" :
     "getServiceByIDWithLang" 
 
@@ -80,12 +81,28 @@ function getServiceBySlugOrID (req, res, next) {
             if (service) {
                 res.status(200).json(service);
             } else {
-                next(
-                    {
-                        statusCode: 404,
-                        message: "The service Not Found",
-                    }
-                )
+                if (!isParamNaN) {
+                    serviceModel.getServiceByID(param)
+                        .then(data => {
+                            if (data) {
+                                res.status(200).json(data);
+                            } else {
+                                next(
+                                    {
+                                        statusCode: 404,
+                                        message: "The service Not Found",
+                                    }
+                                )
+                            }
+                        })
+                } else {
+                    next(
+                        {
+                            statusCode: 404,
+                            message: "The service Not Found",
+                        }
+                    )
+                }
             }
         })
         .catch(error => {

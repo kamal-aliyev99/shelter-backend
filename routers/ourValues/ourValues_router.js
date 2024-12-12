@@ -16,7 +16,7 @@ router.get("/:slugOrID", ourValuesController.getOurValuesBySlugOrID);
 
 router.post("/", upload("ourValues-images").single("image"), ourValuesController.addOurValues);   
 
-router.patch("/:id", checkUpdateIDMiddleware, upload("ourValues-images").single("image"), ourValuesController.updateOurValues);
+router.patch("/:id", upload("ourValues-images").single("image"), checkUpdateIDMiddleware, ourValuesController.updateOurValues);
 
 router.delete("/:id", ourValuesController.deleteOurValues);
 
